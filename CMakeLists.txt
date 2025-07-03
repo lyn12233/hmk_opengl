@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 set(proj_name gl_wrapped_utilities)
 set(proj_flag ${proj_name}_flags)
 
+enable_testing()
+
 project(${proj_name})
 
 # add dependdencies using fetch_content

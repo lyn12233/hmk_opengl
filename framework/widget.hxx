@@ -89,29 +89,4 @@ namespace mf { // mini framework
         Rect        cur_rect;
     };
 
-    // horizontal sizer
-    class HSizer : public WidgetBase {
-        public:
-        HSizer(GLuint w = 0, GLuint h = 0, GLuint border = 0);
-        ~HSizer() override;
-
-        void validate() override; // to validate child entry
-        void layout();
-        bool draw(DrawableFrame &fbo) override;
-        void event_at(EVENT evt, Pos at, EVENT_PARM parameter) override;
-
-        void
-        add(std::shared_ptr<WidgetBase> child, float proportion = 0.,
-            FLAGS style = static_cast<FLAGS>(EXPAND | ALIGN_CENTER));
-
-        protected:
-        GLuint             border_;
-        std::vector<float> proportions;
-        std::vector<FLAGS> styles;
-
-        std::vector<GLuint> fixed_acc;
-        std::vector<float>  portion_acc;
-        std::vector<Rect>   rects;
-    };
-
 }; // namespace mf
