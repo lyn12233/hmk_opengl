@@ -10,8 +10,8 @@
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 
-Shader::Shader(std::string file_path, GLenum shader_type, std::string src)
-    : shader_name(file_path) {
+Shader::Shader(std::string file_path, GLenum shader_type, std::string src) :
+    shader_name(file_path) {
 
     if (!glClear) {
         spdlog::error("Shader::Shader: glad uninitialized\n");
@@ -62,7 +62,15 @@ Shader::Shader(std::string file_path, GLenum shader_type, std::string src)
 
 Shader::Shader(Shader &&o) : ID_(o.ID_), shader_name(o.shader_name) { o.ID_ = 0; }
 
-Shader::~Shader() {
+void Shader::operator=(Shader &&o) {
+    if (this != &o) {
+        cleanup();
+        ID_   = o.ID_;
+        o.ID_ = 0;
+    }
+}
+
+void Shader::cleanup() {
     if (ID_ == 0) return;
     spdlog::debug("deleting shader: {}", shader_name);
     glDeleteShader(ID_);

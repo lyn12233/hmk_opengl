@@ -95,8 +95,9 @@ void VertexArrayObject::bind() {
 
 FrameBufferObject::FrameBufferObject(
     GLuint width, GLuint height, bool require_color_buffer, bool require_depth_buffer
-)
-    : width_(width), height_(height) {
+) :
+    width_(width),
+    height_(height) {
     // init buffer
     glGenFramebuffers(1, &ID_);
 
@@ -133,9 +134,9 @@ FrameBufferObject::FrameBufferObject(
 
 } // fbo constructor/>
 
-FrameBufferObject::FrameBufferObject(FrameBufferObject &&o)
-    : ID_(o.ID_), tex0_(std::move(o.tex0_)), tex_depth_(std::move(o.tex_depth_)), width_(o.width_),
-      height_(o.height_) {
+FrameBufferObject::FrameBufferObject(FrameBufferObject &&o) :
+    ID_(o.ID_), tex0_(std::move(o.tex0_)), tex_depth_(std::move(o.tex_depth_)), width_(o.width_),
+    height_(o.height_) {
     o.ID_ = 0;
 }
 

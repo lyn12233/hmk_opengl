@@ -13,8 +13,8 @@
 using mf::WidgetBase;
 
 // constructor
-WidgetBase::WidgetBase(GLuint w, GLuint h, std::weak_ptr<Window> window, FLAGS style)
-    : fixed_width_(w), fixed_height_(h), cur_rect(0, 0, w, h), style_(style) {
+WidgetBase::WidgetBase(GLuint w, GLuint h, std::weak_ptr<Window> window, FLAGS style) :
+    fixed_width_(w), fixed_height_(h), cur_rect(0, 0, w, h), style_(style) {
     if (window.expired()) {
         spdlog::warn("WidgetBase::WidgetBase: belongs to no window");
         // window = Window::get_window_inst(glfwGetCurrentContext())->shared_from_this();
@@ -34,10 +34,14 @@ void WidgetBase::validate() {
     }
 }
 // draw
+
 // return: if draw still needed for inherited classes
 bool WidgetBase::draw(DrawableFrame &fbo) { return false; }
+
 // default event_at: call dynamic handler and propagate
 void WidgetBase::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
+
+    // custom event handlers
     auto it = std::find(handler_evt_tags.begin(), handler_evt_tags.end(), evt);
     if (it != handler_evt_tags.end()) {
         auto handler = handlers[std::distance(handler_evt_tags.begin(), it)];
@@ -123,4 +127,3 @@ void WidgetBase::repr(int level) {
         c->repr(level + 4);
     }
 }
-

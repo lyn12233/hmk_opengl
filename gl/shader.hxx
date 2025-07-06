@@ -12,10 +12,12 @@
 
 class Shader {
     public:
-    Shader(std::string file_path, GLenum shader_type, std::string src = "");
+    Shader(std::string file_path = "", GLenum shader_type = GL_VERTEX_SHADER, std::string src = "");
     Shader(Shader &&o);
     Shader(const Shader &) = delete;
-    ~Shader();
+    void operator=(Shader &&o);
+    inline ~Shader() { cleanup(); }
+    void cleanup();
 
     void set_value(std::string name, float value);
     void set_value(std::string name, int value);

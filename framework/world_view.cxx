@@ -24,8 +24,11 @@ using mf::CameraPerspective;
 using mf::WorldCamera;
 using mf::WorldViewBase;
 
-CameraPerspective::CameraPerspective(float fovy, float width, float height, float znear, float zfar)
-    : fovy_(fovy), width_(width), height_(height), znear_(znear), zfar_(zfar) {}
+CameraPerspective::CameraPerspective(
+    float fovy, float width, float height, float znear, float zfar
+) :
+    fovy_(fovy),
+    width_(width), height_(height), znear_(znear), zfar_(zfar) {}
 
 mat4 CameraPerspective::get() { return glm::perspective(fovy_, width_ / height_, znear_, zfar_); }
 
@@ -38,17 +41,17 @@ void CameraPerspective::repr(int level) {
 WorldCamera::WorldCamera(
     vec3 coord_pos, vec3 viewpoint, float move_speed, float spin_speed, float zoom_speed_exp,
     float zoom_speed_lin, CameraPerspective perspective
-)
-    : // camera origin and target
-      coord_pos_(coord_pos), viewpoint_(viewpoint),
-      // zoom mode
-      camera_zoom_mode_(CAMERA_ZOOM_EXP),
-      // speeds
-      x_speed_(move_speed), y_speed_(move_speed), z_speed_(move_speed),
-      zoom_speed_lin_(zoom_speed_lin), zoom_speed_exp_(zoom_speed_exp), pitch_speed_(spin_speed),
-      yaw_speed_(spin_speed),
-      // camera perspective
-      perspective_(perspective) {
+) : // camera origin and target
+    coord_pos_(coord_pos),
+    viewpoint_(viewpoint),
+    // zoom mode
+    camera_zoom_mode_(CAMERA_ZOOM_EXP),
+    // speeds
+    x_speed_(move_speed), y_speed_(move_speed), z_speed_(move_speed),
+    zoom_speed_lin_(zoom_speed_lin), zoom_speed_exp_(zoom_speed_exp), pitch_speed_(spin_speed),
+    yaw_speed_(spin_speed),
+    // camera perspective
+    perspective_(perspective) {
     update_angles();
     validate();
 }
@@ -174,6 +177,7 @@ WorldViewBase::~WorldViewBase() {}
 void WorldViewBase::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
     // spdlog::debug("WorldViewBase::event_at({})",(int)evt);
     if (evt == EVT_RESIZE) {
+        spdlog::debug("WorldViewBase::event_at(resize)");
         on_resize(parameter.rect);
     } else if (evt == EVT_KEYBOARD && focus_) {
         auto key    = parameter.pos.x;

@@ -71,7 +71,7 @@ namespace mf {
         inline EVENT_PARM(int x) : i(x) {}
         inline EVENT_PARM(::vec2 x) : vec2(x) {}
     };
-    
+
     typedef void EventHandler_t(EVENT evt, Pos pos, EVENT_PARM parameter);
 
     namespace key_utils {

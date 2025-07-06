@@ -38,9 +38,9 @@ std::shared_ptr<ShaderProgram> DrawableFrame::cp_prog{};
 
 DrawableFrame::DrawableFrame(
     GLuint width, GLuint height, bool require_color_buffer, bool require_depth_buffer
-)
-    : FrameBufferObject(width, height, require_color_buffer, require_depth_buffer),
-      cur_rect_(0, 0, width, height) {
+) :
+    FrameBufferObject(width, height, require_color_buffer, require_depth_buffer),
+    cur_rect_(0, 0, width, height) {
 
     // utilities init parms and prog
     MY_CHECK_FAIL
@@ -48,7 +48,7 @@ DrawableFrame::DrawableFrame(
         cp_vao.emplace();
         cp_vbo.emplace();
         cp_ebo.emplace(GL_ELEMENT_ARRAY_BUFFER);
-        cp_prog = std::make_shared<ShaderProgram>("", "", cp_vshader, cp_fshader);
+        cp_prog = std::make_shared<ShaderProgram>(cp_vshader, cp_fshader);
 
         MY_CHECK_FAIL
         cp_vao->bind();

@@ -63,14 +63,15 @@ namespace mf { // mini framework
         // relation
         std::vector<std::shared_ptr<WidgetBase>> children;
         std::weak_ptr<WidgetBase>                parent;
-        void                                     add_child(std::shared_ptr<WidgetBase> child);
         std::weak_ptr<Window>                    window_;
-        void                                     set_window(std::weak_ptr<Window> win);
+
+        virtual void add_child(std::shared_ptr<WidgetBase> child);
+        virtual void set_window(std::weak_ptr<Window> win);
 
         // states
         bool  dirty = true;
         void  mark_dirty(bool downward = true, bool upward = false);
-        bool  focus_;
+        bool  focus_ = false;
         FLAGS style_;
 
         // slots

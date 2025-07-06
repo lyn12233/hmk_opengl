@@ -214,16 +214,16 @@ void TextEdit::delete_range() {
     }
 }
 
-TextCtrl::TextCtrl(std::string text, GLuint w, GLuint h, GLuint fontsize, mf::FLAGS style)
-    : WidgetBase(w, h, {}, style),
-      // cur_rect_(0,0,w,h),
-      fontsize_(fontsize), xtext(0), ytext(0),
-      ebo(GL_ELEMENT_ARRAY_BUFFER), colors{{1, 1, 1, 1}, {0, 0, 1, 1}, {0, 1, 0, 1}, {1, 0, 0, 1}} {
+TextCtrl::TextCtrl(std::string text, GLuint w, GLuint h, GLuint fontsize, mf::FLAGS style) :
+    WidgetBase(w, h, {}, style),
+    // cur_rect_(0,0,w,h),
+    fontsize_(fontsize), xtext(0), ytext(0),
+    ebo(GL_ELEMENT_ARRAY_BUFFER), colors{{1, 1, 1, 1}, {0, 0, 1, 1}, {0, 1, 0, 1}, {1, 0, 0, 1}} {
     if (!tex_) {
         tex_ = std::make_shared<AsciiTex>(fontsize);
     }
     if (!prog) {
-        prog = std::make_shared<ShaderProgram>("", "", vshader, fshader);
+        prog = std::make_shared<ShaderProgram>(vshader, fshader);
     }
     editor.on_insert(text);
 

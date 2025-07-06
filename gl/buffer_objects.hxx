@@ -16,16 +16,31 @@
 #endif
 #include <GLFW/glfw3.h>
 
+///@addtogroup gl_wrappers
+///@{
+
+/// @brief buffer wrapper for glGenBuffers and glDeleteBuffers
 class BufferObject {
+
     public:
+    ///@brief constructor
+    ///@param buffer_type type of buffer
     BufferObject(GLenum buffer_type);
     BufferObject(BufferObject &&o);
     BufferObject(const BufferObject &) = delete;
     ~BufferObject();
 
+    ///@brief wrapper for glBindBuffer
     void bind();
+
+    ///@ingroup gl_wrappers
+    ///@brief wrapper for glIsBuffer, abort if failed
     void validate();
 
+    ///@brief wrapper for glBufferData
+    ///@param size size of data in bytes
+    ///@param data pointer to data
+    ///@param usage buffer usage, default to GL_STATIC_DRAW
     void SetBufferData(size_t size, const void *data, GLenum usage = GL_STATIC_DRAW);
 
     // readonly's
@@ -135,3 +150,6 @@ class FrameBufferObject {
     //
     // void validate_rect(mf::Rect rect);
 };
+
+///@}
+// end of @group

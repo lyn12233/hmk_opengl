@@ -94,6 +94,7 @@ endif()
 add_subdirectory(impl)
 add_subdirectory(gl)
 add_subdirectory(framework)
+add_subdirectory(procedural)
 
 option(UTILS_BUILD_EXAMPLES "Build example subdirectory" ON)
 

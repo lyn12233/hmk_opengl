@@ -36,15 +36,16 @@ TextureImageData::~TextureImageData() {
 
 TextureObject::TextureObject(
     std::string name, GLuint tex_index, TextureParameter parms, GLenum format
-)
-    : name_(name), tex_index_(tex_index), parms(parms), format_(format) {
+) :
+    name_(name),
+    tex_index_(tex_index), parms(parms), format_(format) {
     validate();
     glGenTextures(1, &ID_);
 }
 
-TextureObject::TextureObject(TextureObject &&o)
-    : ID_(o.ID_), tex_index_(o.tex_index_), name_(o.name_), data_(o.data_), format_(o.format_),
-      gen_mipmap_(o.gen_mipmap_) {
+TextureObject::TextureObject(TextureObject &&o) :
+    ID_(o.ID_), tex_index_(o.tex_index_), name_(o.name_), data_(o.data_), format_(o.format_),
+    gen_mipmap_(o.gen_mipmap_) {
     o.ID_ = 0;
 }
 
@@ -72,7 +73,7 @@ void TextureObject::activate(GLuint at) {
     tex_index_ = (at == -1 ? tex_index_ : 0);
     validate();
     // activate and bind
-    //  NOTE: activetexture must prior to bindtexture
+    //  NOTE: activetexture must prior to the first bindtexture call
     glActiveTexture(GL_TEXTURE0 + tex_index_);
     bind();
 }
@@ -130,8 +131,8 @@ void TextureObject::from_file(
 
 // TextureParameter
 
-TextureParameter::TextureParameter(GLenum wrap_s, GLenum wrap_t, GLenum max_filt, GLenum min_filt)
-    : wrap_s(wrap_s), wrap_t(wrap_t), max_filt(max_filt), min_filt(min_filt) {}
+TextureParameter::TextureParameter(GLenum wrap_s, GLenum wrap_t, GLenum max_filt, GLenum min_filt) :
+    wrap_s(wrap_s), wrap_t(wrap_t), max_filt(max_filt), min_filt(min_filt) {}
 
 void TextureParameter::BindParameter() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);

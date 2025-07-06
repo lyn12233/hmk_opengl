@@ -127,9 +127,12 @@ void Window::set_focus(std::shared_ptr<WidgetBase> focus) {
         focus_ = focus;
     }
 }
+
 // repr
 void Window::repr() { root_->repr(); }
+
 // wrappers
+
 bool Window::should_close() { return glfwWindowShouldClose(window_); }
 void Window::poll_events() { return glfwPollEvents(); }
 void Window::swap_buffers() { glfwSwapBuffers(window_); }
