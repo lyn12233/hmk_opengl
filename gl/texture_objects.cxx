@@ -2,6 +2,7 @@
 #include "checkfail.hxx"
 #include "shader_program.hxx"
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -35,10 +36,10 @@ TextureImageData::~TextureImageData() {
 // TextureObject
 
 TextureObject::TextureObject(
-    std::string name, GLuint tex_index, TextureParameter parms, GLenum format
+    std::string name, GLuint tex_index, TextureParameter parms, GLenum format, GLenum type
 ) :
     name_(name),
-    tex_index_(tex_index), parms(parms), format_(format) {
+    tex_index_(tex_index), parms(parms), format_(format), type_(type) {
     validate();
     glGenTextures(1, &ID_);
 }
@@ -55,15 +56,19 @@ TextureObject::~TextureObject() {
     glDeleteTextures(1, &ID_);
 }
 
-void TextureObject::bind() { glBindTexture(GL_TEXTURE_2D, ID_); }
+void TextureObject::bind() { glBindTexture(type_, ID_); }
 
 void TextureObject::validate() {
     if (tex_index_ >= 32) {
         spdlog::error("invalid texture index:{}", tex_index_);
         exit(-1);
     }
-    if (format_ != GL_RGBA && format_ != GL_DEPTH_COMPONENT) {
+    if (format_ != GL_RGBA && format_ != GL_DEPTH_COMPONENT && format_ != GL_R32F) {
         spdlog::error("invalid texture format:{}", (int)format_);
+        exit(-1);
+    }
+    if (type_ != GL_TEXTURE_2D && type_ != GL_TEXTURE_3D) {
+        spdlog::error("invalid texture type: {}", (int)type_);
         exit(-1);
     }
 }
@@ -92,31 +97,93 @@ void TextureObject::flush() {
         spdlog::warn("TextureObject::flush: warn: texture data not available");
     }
 }
-void TextureObject::from_data(GLuint *data, int width, int height, GLenum value_type) {
-    if (value_type == GL_NONE) {
-        if (format_ == GL_RGBA)
-            value_type = GL_UNSIGNED_BYTE; // default 8UC4
-        else if (format_ == GL_DEPTH_COMPONENT)
-            value_type = GL_FLOAT; // default 32FC1
-    }
+
+void TextureObject::from_data(
+    GLuint *data, int width, int height, GLenum value_type, GLenum input_format
+) {
+    MY_CHECK_FAIL
+    assert(type_ == GL_TEXTURE_2D);
+    value_type   = from_data_get_value_type(value_type);
+    input_format = from_data_get_input_format(input_format);
+
     // bind context
     bind();
     parms.BindParameter();
+
+    MY_CHECK_FAIL
 
     glTexImage2D(
         GL_TEXTURE_2D, // tex type
         0,             // level of detail
         format_,       // internal format
         width, height,
-        0,          // border MBZ
-        format_,    // input format
-        value_type, // input type
-        data        // input
+        0,            // border MBZ
+        input_format, // input format
+        value_type,   // input type
+        data          // input
     );
+
+    MY_CHECK_FAIL
+
     if (gen_mipmap_) {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
+    MY_CHECK_FAIL
 }
+
+void TextureObject::from_data(
+    GLuint *data, int width, int height, int depth, GLenum value_type, GLenum input_format
+) {
+    MY_CHECK_FAIL
+    assert(type_ == GL_TEXTURE_3D);
+    value_type   = from_data_get_value_type(value_type);
+    input_format = from_data_get_input_format(input_format);
+
+    // bind context
+    bind();
+    parms.BindParameter();
+
+    MY_CHECK_FAIL
+
+    glTexImage3D(
+        GL_TEXTURE_3D, // tex type
+        0,             // level of detail
+        format_,       // internal format
+        width, height, depth,
+        0,            // border MBZ
+        input_format, // input format
+        value_type,   // input type
+        data          // input
+    );
+    MY_CHECK_FAIL
+    if (gen_mipmap_) {
+        glGenerateMipmap(GL_TEXTURE_3D);
+    }
+    MY_CHECK_FAIL
+}
+
+GLenum TextureObject::from_data_get_value_type(GLenum value_type) {
+    if (value_type == GL_NONE) {
+        if (format_ == GL_RGBA)
+            value_type = GL_UNSIGNED_BYTE; // default 8UC4
+        else if (format_ == GL_DEPTH_COMPONENT || format_ == GL_R32F)
+            value_type = GL_FLOAT; // default 32FC1
+    }
+    return value_type;
+}
+
+GLenum TextureObject::from_data_get_input_format(GLenum input_format) {
+    if (input_format == GL_NONE) {
+        if (format_ == GL_RGBA)
+            input_format = GL_RGBA;
+        else if (format_ == GL_R32F)
+            input_format = GL_RED;
+        else if (format_ == GL_DEPTH_COMPONENT)
+            input_format = GL_DEPTH_COMPONENT;
+    }
+    return input_format;
+}
+
 void TextureObject::from_file(
     std::string filename, bool gen_mipmap, bool save
 ) { // todo: consider clipping

@@ -4,11 +4,13 @@
 
 #include <filesystem>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <string>
 #include <type_traits>
 #include <variant>
 #include <vector>
+
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -18,12 +20,17 @@
     #include <glad/glad.h>
 #endif
 
+/// @addtogroup gl_wrappers
+/// @{
+
 using glm::mat3;
 using glm::mat4;
 using glm::value_ptr;
 using glm::vec3;
 using glm::vec4;
 using std::is_same_v;
+
+typedef std::map<std::string, std::variant<float, int>> ShaderArgumentDict;
 
 class ShaderProgram {
     public:
@@ -45,10 +52,11 @@ class ShaderProgram {
     inline auto ID() { return ID_; };
 
     protected:
-    GLuint                       ID_;
-    Shader                       vshader;
-    Shader                       fshader;
-    Shader                       gshader;
+    GLuint ID_;
+    Shader vshader;
+    Shader fshader;
+    Shader gshader;
+
     static std::filesystem::path find_path(std::filesystem::path p);
 };
 
@@ -90,3 +98,6 @@ template<typename T> void ShaderProgram::set_value(const char *name, T value) {
         glUniform4fv(location, value.size(), value_ptr(value[0]));
     }
 }
+
+/// @}
+// end of group

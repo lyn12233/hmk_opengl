@@ -143,6 +143,6 @@ int main() {
     auto window   = std::make_shared<mf::Window>();
     auto triangle = std::make_shared<TheTriangle>();
     window->set_root(triangle);
-    window->mainloop();
     triangle->event_at(mf::EVT_FOCUS, mf::Pos(), mf::Rect());
+    window->mainloop();
 }
