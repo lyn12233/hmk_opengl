@@ -1,4 +1,5 @@
 #include "buffer_objects.hxx"
+#include "checkfail.hxx"
 #include "debug_struct.hxx"
 #include "shader_program.hxx"
 #include "texture_objects.hxx"
@@ -6,17 +7,24 @@
 #include "volumetric_cloud.hxx"
 #include "window.hxx"
 #include "world_view.hxx"
+
 #include <memory>
+
+#include <spdlog/spdlog.h>
+
+#define CLOUD_VERTS 10
 
 class DrawACloud : public mf::WorldViewBase {
     public:
     DrawACloud() {
-        cloud_data = terrain::VolumetricCloudData(100, 100, 100);
+        cloud_data = terrain::VolumetricCloudData(CLOUD_VERTS, CLOUD_VERTS, CLOUD_VERTS);
         cloud_data.vectorize_inplace([](float x) { return std::min<float>(glm::pow(x, 4), 1.); });
 
         cloud_tex =
             std::make_shared<TextureObject>("", 0, TextureParameter(), GL_R32F, GL_TEXTURE_3D);
-        cloud_tex->from_data((GLuint *)cloud_data.data(), 100, 100, 100, GL_FLOAT);
+        cloud_tex->from_data(
+            (GLuint *)cloud_data.data(), CLOUD_VERTS, CLOUD_VERTS, CLOUD_VERTS, GL_FLOAT
+        );
 
         quadvert = std::vector<float>{-1, -1, 1, -1, //
                                       -1, 1,  1, 1};
@@ -44,16 +52,16 @@ class DrawACloud : public mf::WorldViewBase {
             cloud_data, get_world2tex(offs, x0, y0, z0), light_dir, 20, 64, 0.1, 3
         );
 
-        cloud_tex =
+        cloud_light_tex =
             std::make_shared<TextureObject>("", 0, TextureParameter(), GL_R32F, GL_TEXTURE_3D);
-        cloud_tex->from_data(
+        cloud_light_tex->from_data(
             (GLuint *)cloud_light_cache.data(), cloud_light_cache.shape()[0],
             cloud_light_cache.shape()[1], cloud_light_cache.shape()[2], GL_FLOAT
         );
     }
 
     bool draw(mf::DrawableFrame &fbo) override {
-        spdlog::debug("DrawACloud::Draw");
+        // spdlog::debug("DrawACloud::Draw");
 
         fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 0, 0});
         fbo.viewport(cur_rect);
@@ -61,7 +69,34 @@ class DrawACloud : public mf::WorldViewBase {
         prog->use();
         vao.bind();
 
-        // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        // set uniforms
+
+        prog->set_value("fovy", camera.perspective_.fovy_);
+        prog->set_value(
+            "resolution", glm::vec2(camera.perspective_.width_, camera.perspective_.height_)
+        );
+
+        prog->set_value("camera_pos", camera.coord_pos_);
+        // prog->set_value("camera_dir", camera.viewpoint_ - camera.coord_pos_);
+        prog->set_value("world2view", camera.world2view());
+
+        prog->set_value("aabb_min", glm::vec3(-5, -5, -5));
+        prog->set_value("aabb_max", glm::vec3(5, 5, 5));
+
+        prog->set_value("cloud_world2tex", get_world2tex(offs, x0, y0, z0));
+        prog->set_value("light_cache_world2tex", get_world2tex(offs, x0, y0, z0));
+        cloud_tex->activate_sampler(prog, "cloud_tex", 0);
+        cloud_light_tex->activate_sampler(prog, "light_tex", 1);
+        prog->set_value("nb_iter", 10);
+
+        prog->set_value("bkgd_color", glm::vec3(0.53f, 0.81f, 0.92f));
+        prog->set_value("light_color", glm::vec3(1.0f, 0.98f, 0.92f));
+        prog->set_value("sigma_a", 0.1f);
+        prog->set_value("sigma_s", 0.9f);
+
+        MY_CHECK_FAIL
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         return false;
     }
     static mat4 get_world2tex(vec3 offs, vec3 x0, vec3 y0, vec3 z0) {
@@ -89,4 +124,11 @@ class DrawACloud : public mf::WorldViewBase {
 int main() {
     auto window = std::make_shared<mf::Window>();
     auto draw   = std::make_shared<DrawACloud>();
+    draw->cloud_data.repr();
+    draw->cloud_light_cache.repr();
+
+    window->set_root(draw);
+    draw->event_at(mf::EVT_FOCUS, mf::Pos(), mf::Rect());
+
+    window->mainloop();
 }

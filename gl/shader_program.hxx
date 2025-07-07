@@ -3,6 +3,7 @@
 #include "shader.hxx"
 
 #include <filesystem>
+#include <glm/fwd.hpp>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -10,7 +11,6 @@
 #include <type_traits>
 #include <variant>
 #include <vector>
-
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -23,14 +23,14 @@
 /// @addtogroup gl_wrappers
 /// @{
 
+using glm::mat2;
 using glm::mat3;
 using glm::mat4;
 using glm::value_ptr;
+using glm::vec2;
 using glm::vec3;
 using glm::vec4;
 using std::is_same_v;
-
-typedef std::map<std::string, std::variant<float, int>> ShaderArgumentDict;
 
 class ShaderProgram {
     public:
@@ -66,15 +66,17 @@ template<typename T> void ShaderProgram::set_value(const char *name, T value) {
     // get parm location and checkfail
     auto location = glGetUniformLocation(ID_, name);
     if (location == -1) {
-        spdlog::error("uniform parm not found: {} (prog_id: {})", name, ID_);
+        spdlog::error(
+            "uniform parm not found: {} (of type:{})(prog_id: {})", name, typeid(T).name(), ID_
+        );
         exit(-1);
     }
 
     // set parm according to type
     static_assert(
         is_same_v<T, int> || is_same_v<T, unsigned int> || is_same_v<T, float> ||
-            is_same_v<T, vec3> || is_same_v<T, mat3> || is_same_v<T, vec4> || is_same_v<T, mat4> ||
-            is_same_v<T, std::vector<vec4>>,
+            is_same_v<T, vec2> || is_same_v<T, mat2> || is_same_v<T, vec3> || is_same_v<T, mat3> ||
+            is_same_v<T, vec4> || is_same_v<T, mat4> || is_same_v<T, std::vector<vec4>>,
         "T not supported"
     );
 
@@ -82,6 +84,12 @@ template<typename T> void ShaderProgram::set_value(const char *name, T value) {
         glUniform1f(location, value);
     } else if constexpr (is_same_v<T, int> || is_same_v<T, unsigned int>) {
         glUniform1i(location, value);
+    }
+    // vec2, mat2
+    else if constexpr (is_same_v<T, vec2>) {
+        glUniform2fv(location, 1, value_ptr(value));
+    } else if constexpr (is_same_v<T, mat2>) {
+        glUniformMatrix2fv(location, 1, GL_FALSE, value_ptr(value));
     }
     // vec3, mat3
     else if constexpr (is_same_v<T, vec3>) {

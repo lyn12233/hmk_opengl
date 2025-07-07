@@ -74,7 +74,7 @@ target_link_libraries(${proj_flag} INTERFACE
     glm::glm
 )
 target_include_directories(${proj_flag} INTERFACE 
-    ${Stb_INCLUDE_DIR}
+    ${Stb_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
 
 target_compile_features(${proj_flag} INTERFACE cxx_std_17)

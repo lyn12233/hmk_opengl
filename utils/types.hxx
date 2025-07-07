@@ -3,9 +3,14 @@
 #include <array>
 #include <cassert>
 #include <functional>
+#include <map>
 #include <stddef.h>
 #include <type_traits>
+#include <variant>
 #include <vector>
+
+
+#include <spdlog/spdlog.h>
 
 namespace terrain {
     using std::array;
@@ -23,6 +28,8 @@ namespace terrain {
 
         void *data();
 
+        void repr();
+
         protected:
         vector<T> data_;
 
@@ -31,6 +38,12 @@ namespace terrain {
         int dimZ_;
     };
 } // namespace terrain
+
+namespace mf {
+    typedef std::map<std::string, std::variant<int, float>> ShaderArgumentDict;
+}
+
+// implementations
 
 template<typename T>
 terrain::Array3D<T>::Array3D(int dimX, int dimY, int dimZ) :
@@ -65,4 +78,25 @@ template<typename T> std::array<int, 3> terrain::Array3D<T>::shape() const {
 
 template<typename T> void *terrain::Array3D<T>::data() {
     return reinterpret_cast<void *>(data_.data());
+}
+
+template<typename T> void terrain::Array3D<T>::repr() {
+    std::string s;
+    s = "[";
+    for (int x = 0; x < dimX_; ++x) {
+        s += " [";
+        for (int y = 0; y < dimY_; ++y) {
+            s += "  [";
+            for (int z = 0; z < dimZ_; ++z) {
+                s += std::to_string((*this)[{x, y, z}]);
+                if (z != dimZ_ - 1) s += " ";
+            }
+            s += "]";
+            if (y != dimY_ - 1) s += " ";
+        }
+        s += "]";
+        if (x != dimX_ - 1) s += " ";
+    }
+    s += "]";
+    spdlog::info(s);
 }

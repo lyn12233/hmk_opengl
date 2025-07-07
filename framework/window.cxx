@@ -87,14 +87,18 @@ void Window::on_resize() {
 // draw
 void Window::draw() {
     // spdlog::debug("Window::draw");
+    MY_CHECK_FAIL
     if (root_) {
         // spdlog::debug("drawing root_...");
         fbo_->bind();
+        MY_CHECK_FAIL
         root_->draw(*fbo_);
+        MY_CHECK_FAIL
         fbo_->unbind();
     }
     glViewport(0, 0, width_, height_);
     fbo_->draw();
+    MY_CHECK_FAIL
 
 #ifdef _DEBUG
 // repr();

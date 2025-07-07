@@ -39,6 +39,7 @@ namespace mf {
             width_  = w;
             height_ = h;
         }
+        inline float width_ratio() { return (float)width_ / height_; }
 
         constexpr static float pi = glm::pi<float>();
 

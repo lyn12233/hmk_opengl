@@ -2,11 +2,9 @@
 out vec4 FragColor;
 
 uniform float fovy; // in radians
-uniform float width_ratio;
 uniform vec2  resolution;
 
 uniform vec3 camera_pos;
-uniform vec3 camera_dir;
 uniform mat4 world2view; // lookat matrix
 
 uniform vec3 aabb_min;
