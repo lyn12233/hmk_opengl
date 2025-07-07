@@ -35,26 +35,28 @@ namespace mf {
     // general single-line ascii text logic, handles color, insert, delete logic
     class TextEdit {
         public:
-        TextEdit();
+        TextEdit(bool allow_trailing = true);
         ~TextEdit();
 
         void validate();
 
-        void              on_insert(char c);
-        void              on_insert(std::string s);
-        void              on_delete_();
-        void              on_backspace();
-        void              on_mouse_up(GLuint at);
-        void              on_mouse_down(GLuint at);
-        void              on_mouse_move(GLuint at);
-        void              on_left();
-        void              on_right();
+        void on_insert(char c);
+        void on_insert(std::string s);
+        void on_delete_();
+        void on_backspace();
+        void on_mouse_up(GLuint at);
+        void on_mouse_down(GLuint at);
+        void on_mouse_move(GLuint at);
+        void on_left();
+        void on_right();
+
         std::vector<char> get_color_masks();
 
-        int eval_cursor_idx(int width);
+        inline std::string get_text() { return has_trailing() ? text_ + ' ' : text_; }
+        inline GLuint      size() { return text_.size() + has_trailing(); }
 
-        inline std::string get_text() { return text_ + ' '; }
-        inline GLuint      size() { return text_.size() + 1; }
+        inline bool has_trailing() { return cur_pos_ == text_.size(); }
+        bool        allow_trailing;
 
         protected:
         void        delete_range();
@@ -68,7 +70,7 @@ namespace mf {
         public:
         TextCtrl(
             std::string text = "", GLuint w = 100, GLuint h = 20, GLuint fontsize = 32,
-            mf::FLAGS style = mf::ALIGN_CENTER
+            mf::FLAGS style = static_cast<FLAGS>(mf::ALIGN_CENTER | mf::EXPAND)
         );
         ~TextCtrl() override;
 
@@ -111,5 +113,15 @@ namespace mf {
         static std::string                    vshader;
         static std::string                    fshader;
         static std::shared_ptr<ShaderProgram> prog;
+    };
+
+    class StaticText : public TextCtrl {
+        public:
+        StaticText(
+            std::string text = "", GLuint w = 100, GLuint h = 20, GLuint fontsize = 32,
+            mf::FLAGS style = static_cast<FLAGS>(mf::ALIGN_CENTER | mf::EXPAND)
+        );
+        ~StaticText() override;
+        void event_at(EVENT evt, Pos at, EVENT_PARM parameter) override;
     };
 } // namespace mf

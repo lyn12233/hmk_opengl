@@ -72,6 +72,7 @@ void Window::on_resize(int w, int h) {
     width_  = w;
     height_ = h;
     fbo_->set_cur_rect(mf::Rect(0, 0, w, h));
+    fbo_->resize(w, h);
     if (root_) {
         root_->event_at(EVT_RESIZE, Pos(), Rect(0, 0, width_, height_));
     } else {

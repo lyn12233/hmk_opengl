@@ -69,7 +69,8 @@ template<typename T> void ShaderProgram::set_value(const char *name, T value) {
         spdlog::error(
             "uniform parm not found: {} (of type:{})(prog_id: {})", name, typeid(T).name(), ID_
         );
-        exit(-1);
+        // exit(-1);
+        return;
     }
 
     // set parm according to type

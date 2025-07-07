@@ -34,6 +34,12 @@ namespace mf {
         // set output rect relative to screen
         inline void set_cur_rect(mf::Rect rect) { cur_rect_ = rect; }
 
+        // resize tex0
+        inline void resize(int w, int h) {
+            tex0_->from_data(nullptr, w, h);
+            width_ = w, height_ = h;
+        }
+
         void validate_rect(mf::Rect rect);
 
         protected:

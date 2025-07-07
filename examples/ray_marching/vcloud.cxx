@@ -18,7 +18,9 @@ class DrawACloud : public mf::WorldViewBase {
     public:
     DrawACloud() {
         cloud_data = terrain::VolumetricCloudData(CLOUD_VERTS, CLOUD_VERTS, CLOUD_VERTS);
-        cloud_data.vectorize_inplace([](float x) { return std::min<float>(glm::pow(x, 4), 1.); });
+        cloud_data.vectorize_inplace([](float x) {
+            return std::min<float>(glm::pow(x, 4) / 64, 1.);
+        });
 
         cloud_tex =
             std::make_shared<TextureObject>("", 0, TextureParameter(), GL_R32F, GL_TEXTURE_3D);
@@ -49,7 +51,7 @@ class DrawACloud : public mf::WorldViewBase {
         light_dir = vec3(0, -1, -0.3);
 
         cloud_light_cache = terrain::gen_light_cache( //
-            cloud_data, get_world2tex(offs, x0, y0, z0), light_dir, 20, 64, 0.1, 3
+            cloud_data, get_world2tex(offs, x0, y0, z0), light_dir, 20, 10, 1e-2, 1.0
         );
 
         cloud_light_tex =
@@ -76,7 +78,7 @@ class DrawACloud : public mf::WorldViewBase {
             "resolution", glm::vec2(camera.perspective_.width_, camera.perspective_.height_)
         );
 
-        prog->set_value("camera_pos", camera.coord_pos_);
+        prog->set_value("camera_pos", camera.viewpoint_);
         // prog->set_value("camera_dir", camera.viewpoint_ - camera.coord_pos_);
         prog->set_value("world2view", camera.world2view());
 

@@ -34,7 +34,7 @@ void BoxSizer::validate() {
 } //::validate/>
 
 void BoxSizer::layout() {
-    spdlog::debug("Sizer::layout");
+    spdlog::debug("Sizer::layout (num_child:{})", children.size());
     validate();
 
     auto len    = children.size();

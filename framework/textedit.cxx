@@ -17,6 +17,7 @@
 #include <spdlog/spdlog.h>
 
 using mf::AsciiTex;
+using mf::StaticText;
 using mf::TextCtrl;
 using mf::TextEdit;
 
@@ -118,7 +119,7 @@ AsciiTex::AsciiTex(GLuint tex_height, std::string font_path) {
 }
 AsciiTex::~AsciiTex() {}
 
-TextEdit::TextEdit() {
+TextEdit::TextEdit(bool allow_trailing) : allow_trailing(allow_trailing) {
     cur_pos_    = 0;
     last_pos_   = 0;
     mouse_down_ = false;
@@ -130,6 +131,12 @@ void TextEdit::validate() {
     if (cur_pos_ < 0 || cur_pos_ > text_.size() || last_pos_ < 0 || last_pos_ > text_.size()) {
         spdlog::error("invalid selection");
         exit(-1);
+    }
+    if (!allow_trailing && cur_pos_ == text_.size() && cur_pos_ != 0) {
+        cur_pos_--;
+    }
+    if (!allow_trailing && last_pos_ == text_.size() && last_pos_ != 0) {
+        last_pos_--;
     }
 }
 void TextEdit::on_insert(char c) {
@@ -201,6 +208,7 @@ std::vector<char> TextEdit::get_color_masks() {
     } else {
         std::fill(mask.begin() + last_pos_, mask.begin() + cur_pos_ + 1, 1);
     }
+    // if (!has_trailing()) mask.pop_back();
     return mask;
 }
 
@@ -215,10 +223,8 @@ void TextEdit::delete_range() {
 }
 
 TextCtrl::TextCtrl(std::string text, GLuint w, GLuint h, GLuint fontsize, mf::FLAGS style) :
-    WidgetBase(w, h, {}, style),
-    // cur_rect_(0,0,w,h),
-    fontsize_(fontsize), xtext(0), ytext(0),
-    ebo(GL_ELEMENT_ARRAY_BUFFER), colors{{1, 1, 1, 1}, {0, 0, 1, 1}, {0, 1, 0, 1}, {1, 0, 0, 1}} {
+    WidgetBase(w, std::max(h, fontsize), {}, style), fontsize_(fontsize), xtext(0), ytext(0),
+    ebo(GL_ELEMENT_ARRAY_BUFFER), colors{{0, 0, 0, 1}, {1, 1, 1, 1}, {1, 1, 1, 1}, {0, 0, 0, 1}} {
     if (!tex_) {
         tex_ = std::make_shared<AsciiTex>(fontsize);
     }
@@ -286,9 +292,8 @@ bool TextCtrl::draw(DrawableFrame &fbo) {
     int  len  = editor.size();
     auto str  = editor.get_text();
     auto mask = editor.get_color_masks();
-    if (!focus_) {
-        std::fill(mask.begin(), mask.end(), 0);
-    }
+
+    if (!focus_) std::fill(mask.begin(), mask.end(), 0);
 
     ebo_data.clear();
     vbo_data.clear();
@@ -328,7 +333,7 @@ bool TextCtrl::draw(DrawableFrame &fbo) {
     update_text_coord();
     // spdlog::debug("text coord: {},{},{},{}",xtext,ytext,wtext,htext);
 
-    fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {255, 255, 0, 255});
+    fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 0, 255});
     fbo.viewport(Rect(xtext, ytext, wtext, htext));
     MY_CHECK_FAIL
     tex_->activate_sampler(prog, "texture0", 0);
@@ -342,8 +347,13 @@ bool TextCtrl::draw(DrawableFrame &fbo) {
 }
 
 void TextCtrl::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
+    // spdlog::debug("TextCtrl::event_at({})", (int)evt);
 
     if (evt == EVT_RESIZE) {
+        spdlog::debug(
+            "TextCtrl::event_at(resize),{},{},{},{}", parameter.rect.x, parameter.rect.y,
+            parameter.rect.w, parameter.rect.h
+        );
         mark_dirty(false, false);
         if ((style_ & EXPAND_BITS) == EXPAND) {
             cur_rect = parameter.rect;
@@ -425,5 +435,21 @@ void TextCtrl::update_text_coord() {
         xtext = (int)cur_rect.x + ((int)cur_rect.w - wtext) / 2;
     } else {
         spdlog::error("TextCtrl::update_text_coord: unimplemented");
+    }
+}
+
+StaticText::StaticText(std::string text, GLuint w, GLuint h, GLuint fontsize, mf::FLAGS style) :
+    TextCtrl(text, w, h, fontsize, style) {
+    editor.allow_trailing = false;
+}
+StaticText::~StaticText() { spdlog::debug("StaticText::~StaticText"); }
+
+void StaticText::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
+    if (evt == EVT_KEYBOARD && focus_ && parameter.pos.x != GLFW_KEY_LEFT &&
+            parameter.pos.x != GLFW_KEY_RIGHT ||
+        evt == EVT_CHAR && focus_) {
+        WidgetBase::event_at(evt, at, parameter);
+    } else {
+        TextCtrl::event_at(evt, at, parameter);
     }
 }
