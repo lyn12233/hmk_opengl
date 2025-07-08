@@ -9,13 +9,11 @@
 #include "window.hxx"
 #include "world_view.hxx"
 
-
 #include <memory>
 #include <vector>
 
 #include <glm/geometric.hpp>
 #include <spdlog/spdlog.h>
-
 
 #ifdef _DEBUG
 static struct SpdlogInit {
@@ -26,6 +24,7 @@ static struct SpdlogInit {
 using glm::mat4;
 using glm::vec3;
 using std::shared_ptr;
+using namespace glwrapper;
 
 inline mat4 model2world(vec3 model_pos, vec3 model_tangent, vec3 model_bitangent) {
     vec3 normal     = glm::normalize(glm::cross(model_tangent, model_bitangent));

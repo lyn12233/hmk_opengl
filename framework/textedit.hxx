@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer_objects.hxx"
+#include "config.hxx"
 #include "shader_program.hxx"
 #include "texture_objects.hxx"
 #include "utils.hxx"
@@ -17,7 +18,7 @@ namespace mf {
     // ' ' - '~' ascii char texture of given font size
     class AsciiTex : public TextureObject {
         public:
-        AsciiTex(GLuint tex_width = 20, std::string font_path = "C:/Windows/Fonts/cour.ttf");
+        AsciiTex(GLuint tex_width = 20, std::string font_path = DEFAULT_TTF_PATH);
         ~AsciiTex();
 
         //----type: 8UC4
@@ -53,6 +54,7 @@ namespace mf {
         std::vector<char> get_color_masks();
 
         inline std::string get_text() { return has_trailing() ? text_ + ' ' : text_; }
+        inline void        set_text(std::string text) { text_ = text, cur_pos_ = 0, last_pos_ = 0; }
         inline GLuint      size() { return text_.size() + has_trailing(); }
 
         inline bool has_trailing() { return cur_pos_ == text_.size(); }
@@ -69,8 +71,9 @@ namespace mf {
     class TextCtrl : public WidgetBase {
         public:
         TextCtrl(
-            std::string text = "", GLuint w = 100, GLuint h = 20, GLuint fontsize = 32,
-            mf::FLAGS style = static_cast<FLAGS>(mf::ALIGN_CENTER | mf::EXPAND)
+            std::string text = "", GLuint w = DEFAULT_TC_WIDTH, GLuint h = 20,
+            GLuint    fontsize = DEFAULT_TC_FONTSIZE,
+            mf::FLAGS style    = static_cast<FLAGS>(mf::ALIGN_CENTER | mf::EXPAND)
         );
         ~TextCtrl() override;
 
@@ -85,7 +88,10 @@ namespace mf {
         std::vector<int>       ebo_data;
         std::vector<glm::vec4> colors; //[<bkgd>,<frgd>,]+
 
-        // text infos
+        // text infos and attrs
+
+        inline std::string get_text() { return editor.get_text(); }
+        inline void set_text(std::string text) { editor.set_text(text), mark_dirty(false, true); }
 
         GLuint fontsize_;
         // given cur_rect, style, texteditor, set x/ytext offset relative to screen
@@ -118,8 +124,9 @@ namespace mf {
     class StaticText : public TextCtrl {
         public:
         StaticText(
-            std::string text = "", GLuint w = 100, GLuint h = 20, GLuint fontsize = 32,
-            mf::FLAGS style = static_cast<FLAGS>(mf::ALIGN_CENTER | mf::EXPAND)
+            std::string text = "", GLuint w = DEFAULT_TC_WIDTH, GLuint h = 20,
+            GLuint    fontsize = DEFAULT_TC_FONTSIZE,
+            mf::FLAGS style    = static_cast<FLAGS>(mf::ALIGN_CENTER | mf::EXPAND)
         );
         ~StaticText() override;
         void event_at(EVENT evt, Pos at, EVENT_PARM parameter) override;

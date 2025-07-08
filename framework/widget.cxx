@@ -16,9 +16,7 @@ using mf::WidgetBase;
 WidgetBase::WidgetBase(GLuint w, GLuint h, std::weak_ptr<Window> window, FLAGS style) :
     fixed_width_(w), fixed_height_(h), cur_rect(0, 0, w, h), style_(style) {
     if (window.expired()) {
-        spdlog::warn("WidgetBase::WidgetBase: belongs to no window");
-        // window = Window::get_window_inst(glfwGetCurrentContext())->shared_from_this();
-        // spdlog::warn("here");
+        // spdlog::warn("WidgetBase::WidgetBase: belongs to no window");
     }
     window_ = window;
 }

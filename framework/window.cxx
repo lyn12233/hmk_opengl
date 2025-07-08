@@ -45,7 +45,7 @@ Window::Window(GLuint w, GLuint h, std::string title) : width_(w), height_(h), t
 }
 Window::~Window() {
     MY_CHECK_FAIL
-    spdlog::info("destroying window(Window::~Window)");
+    spdlog::info("Window::~Window: destroying window");
     // callback destroyed first
     glfwSetWindowUserPointer(window_, nullptr);
     MY_CHECK_FAIL
@@ -167,10 +167,6 @@ void Window::default_framebuffer_size_callback(GLFWwindow *window, int w, int h)
     auto window_inst = get_window_inst(window);
     if (window_inst) {
         window_inst->on_resize(w, h);
-        // #ifdef _DEBUG
-        // spdlog::info("Framebuffer resized to {}x{}", w, h);
-        // window_inst->repr();
-        // #endif
     }
 }
 
@@ -178,9 +174,9 @@ void Window::default_key_callback(
     GLFWwindow *window, int key, int scancode, int action, int modes
 ) {
     auto window_inst = get_window_inst(window);
-    spdlog::debug(
-        "Window::default_key_callback (focus exists:{})", (bool)(window_inst && window_inst->focus_)
-    );
+    // spdlog::debug(
+    // "Window::default_key_callback (focus exists:{})", (bool)(window_inst && window_inst->focus_)
+    // );
     if (window_inst && window_inst->focus_) {
         window_inst->focus_->event_at(EVT_KEYBOARD, get_cursor_pos(window), Pos(key, action));
     }
@@ -213,7 +209,9 @@ void Window::default_mouse_callback(GLFWwindow *window, int button, int action, 
                                                               : EVT_MOUSE_MIDDLE;
         window_inst->root_->event_at(evt, get_cursor_pos(window), Pos(action, mods));
         if (action == GLFW_PRESS) {
-            spdlog::info("focus: ({},{})", get_cursor_pos(window).x, get_cursor_pos(window).y);
+            spdlog::debug(
+                "Window: focus: ({},{})", get_cursor_pos(window).x, get_cursor_pos(window).y
+            );
             window_inst->root_->event_at(EVT_FOCUS, get_cursor_pos(window), Rect());
         }
     }

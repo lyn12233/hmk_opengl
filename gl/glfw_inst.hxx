@@ -1,5 +1,7 @@
 #pragma once
 
+#include "config.hxx"
+
 #include <string>
 
 #ifndef __gl_h_
@@ -7,14 +9,18 @@
 #endif
 #include <GLFW/glfw3.h>
 
-class GlfwInst {
-    public:
-    GlfwInst(
-        std::string version = "3.3", int profile = GLFW_OPENGL_CORE_PROFILE, bool do_load = false
-    );
-    GlfwInst(GlfwInst &&)      = delete;
-    GlfwInst(const GlfwInst &) = delete;
-    ~GlfwInst();
+namespace glwrapper {
 
-    void load_proc();
-};
+    class GlfwInst {
+        public:
+        GlfwInst(
+            std::string version = DEFAULT_GL_VERSION, int profile = GLFW_OPENGL_CORE_PROFILE,
+            bool do_load = false
+        );
+        GlfwInst(GlfwInst &&)      = delete;
+        GlfwInst(const GlfwInst &) = delete;
+        ~GlfwInst();
+
+        void load_proc();
+    };
+} // namespace glwrapper

@@ -11,6 +11,7 @@
 
 #include <spdlog/spdlog.h>
 
+using glwrapper::ShaderProgram;
 using std::filesystem::path;
 
 ShaderProgram::ShaderProgram(

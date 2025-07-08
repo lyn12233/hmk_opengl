@@ -15,7 +15,6 @@ using glm::cos;
 using glm::floor;
 using glm::length;
 using glm::mat4;
-using glm::normalize;
 using glm::sin;
 using glm::sqrt;
 using glm::vec3;
@@ -40,16 +39,17 @@ void CameraPerspective::repr(int level) {
 
 WorldCamera::WorldCamera(
     vec3 coord_pos, vec3 viewpoint, float move_speed, float spin_speed, float zoom_speed_exp,
-    float zoom_speed_lin, CameraPerspective perspective
-) : // camera origin and target
-    coord_pos_(coord_pos),
-    viewpoint_(viewpoint),
+    float zoom_speed_lin, CameraPerspective perspective, bool spin_at_viewpoint
+) :                        // camera origin and target
+    coord_pos_(coord_pos), //
+    viewpoint_(viewpoint), //
+    spin_at_viewpoint_(spin_at_viewpoint),
     // zoom mode
     camera_zoom_mode_(CAMERA_ZOOM_EXP),
     // speeds
-    x_speed_(move_speed), y_speed_(move_speed), z_speed_(move_speed),
-    zoom_speed_lin_(zoom_speed_lin), zoom_speed_exp_(zoom_speed_exp), pitch_speed_(spin_speed),
-    yaw_speed_(spin_speed),
+    x_speed_(move_speed), y_speed_(move_speed), z_speed_(move_speed), //
+    zoom_speed_lin_(zoom_speed_lin), zoom_speed_exp_(zoom_speed_exp), //
+    pitch_speed_(spin_speed), yaw_speed_(spin_speed),
     // camera perspective
     perspective_(perspective) {
     update_angles();
@@ -89,8 +89,12 @@ void WorldCamera::validate() {
 }
 
 void WorldCamera::update_viewpoint() {
-    auto dir   = vec3(sin(theta_) * sin(phi_), cos(theta_), sin(theta_) * cos(phi_));
-    viewpoint_ = coord_pos_ + dir * dist_;
+    auto dir = vec3(sin(theta_) * sin(phi_), cos(theta_), sin(theta_) * cos(phi_));
+    if (spin_at_viewpoint_) {
+        coord_pos_ = viewpoint_ - dir * dist_;
+    } else {
+        viewpoint_ = coord_pos_ + dir * dist_;
+    }
 } // update_loc/>
 
 void WorldCamera::update_angles() {
@@ -126,16 +130,16 @@ void WorldCamera::camera_move(CAMERA_MOVE_T dir, float dt) {
             local_move = vec3(0, 0, 1) * z_speed_ * dt;
             break;
         case CAMERA_SPIN_DOWN:
-            theta_ += pitch_speed_ * dt;
+            theta_ += pitch_speed_ * dt * (spin_at_viewpoint_ ? -1 : 1);
             break;
         case CAMERA_SPIN_UP:
-            theta_ -= pitch_speed_ * dt;
+            theta_ -= pitch_speed_ * dt * (spin_at_viewpoint_ ? -1 : 1);
             break;
         case CAMERA_SPIN_RIGHT:
-            phi_ += yaw_speed_ * dt;
+            phi_ += yaw_speed_ * dt * (spin_at_viewpoint_ ? -1 : 1);
             break;
         case CAMERA_SPIN_LEFT:
-            phi_ -= yaw_speed_ * dt;
+            phi_ -= yaw_speed_ * dt * (spin_at_viewpoint_ ? -1 : 1);
             break;
         case CAMERA_ZOOM_FORWARD:
             dt = -dt;
@@ -145,7 +149,8 @@ void WorldCamera::camera_move(CAMERA_MOVE_T dir, float dt) {
             } else if (camera_zoom_mode_ == CAMERA_ZOOM_LINEAR) {
                 dist_ += zoom_speed_lin_ * dt;
             }
-    }                               // switch(dir)/>
+    } // switch(dir)/>
+
     if (local_move != vec3(0.0f)) { // shift-like move
         local_move = horizontal_spin * local_move;
         coord_pos_ += local_move;

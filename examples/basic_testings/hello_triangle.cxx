@@ -17,6 +17,8 @@
     #include "debug_struct.hxx"
 #endif
 
+using namespace glwrapper;
+
 class TheTriangle : public mf::WorldViewBase {
     public:
     TheTriangle() {

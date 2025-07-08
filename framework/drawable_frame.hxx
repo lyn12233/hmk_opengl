@@ -1,27 +1,36 @@
 #pragma once
 
 #include "buffer_objects.hxx"
+#include "config.hxx"
+#include "shader.hxx"
+#include "shader_program.hxx"
+#include "texture_objects.hxx"
 #include "utils.hxx"
 
 namespace mf {
+    using glwrapper::BufferObject;
+    using glwrapper::FrameBufferObject;
+    using glwrapper::ShaderProgram;
+    using glwrapper::TextureObject;
+    using glwrapper::VertexArrayObject;
+    using glwrapper::VertexBufferObject;
+
     class DrawableFrame : public FrameBufferObject {
         public:
         DrawableFrame(
-            GLuint width = 800, GLuint height = 600, bool require_color_buffer = true,
-            bool require_depth_buffer = true
+            GLuint width = DEFAULT_FBO_WIDTH, GLuint height = DEFAULT_FBO_HEIGHT,
+            bool require_color_buffer = true, bool require_depth_buffer = true
         );
         ~DrawableFrame();
 
         // draw utilities
-
-        glm::vec4 bgcolor{.1, .1, .1, .1};
 
         void draw(bool to_frame = true);
 
         void viewport(mf::Rect rect);
         void clear_color(
             mf::Rect rect, GLenum bits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
-            glm::u8vec4 color = {0, 0, 0, 0}
+            glm::u8vec4 color = DEFAULT_CLEAR_COLOR
         );
         void paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect);
         void paste_fbo(FrameBufferObject &fbo2, mf::Rect rect);

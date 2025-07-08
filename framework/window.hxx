@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.hxx"
 #include "glfw_inst.hxx"
 
 #include "widget.hxx" //recursive include
@@ -12,11 +13,16 @@
 #endif
 #include <GLFW/glfw3.h>
 
+using glwrapper::GlfwInst;
+
 namespace mf {
     class WidgetBase;
     class Window : public std::enable_shared_from_this<Window> {
         public:
-        Window(GLuint w = 800, GLuint h = 600, std::string title = "");
+        Window(
+            GLuint w = DEFAULT_WINDOW_WIDTH, GLuint h = DEFAULT_WINDOW_HEIGHT,
+            std::string title = ""
+        );
         ~Window();
 
         void bind();

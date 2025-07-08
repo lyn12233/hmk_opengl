@@ -1,17 +1,19 @@
 #pragma once
 
 #include "buffer_objects.hxx"
+#include "config.hxx"
 #include "drawable_frame.hxx"
 #include "utils.hxx"
 #include "widget.hxx"
+
 
 namespace mf {
     class BoxSizer : public WidgetBase {
         public:
         BoxSizer(
-            GLuint w      = 0,  // fixed width
-            GLuint h      = 0,  // fixed height
-            GLuint border = 10, // 2n+1 borders
+            GLuint w      = 0,                    // fixed width
+            GLuint h      = 0,                    // fixed height
+            GLuint border = DEFAULT_SIZER_BORDER, // 2n+1 borders
             FLAGS  style  = SIZER_HORIZONTAL
         );
         ~BoxSizer() override;

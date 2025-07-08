@@ -5,6 +5,8 @@
 
 #include <spdlog/spdlog.h>
 
+using glwrapper::GlfwInst;
+
 GlfwInst::GlfwInst(std::string version, int profile, bool do_load) {
     glfwInit();
     std::string version_major, version_minor;

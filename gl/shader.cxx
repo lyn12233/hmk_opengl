@@ -10,6 +10,8 @@
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 
+using glwrapper::Shader;
+
 Shader::Shader(std::string file_path, GLenum shader_type, std::string src) :
     shader_name(file_path) {
 
@@ -72,7 +74,7 @@ void Shader::operator=(Shader &&o) {
 
 void Shader::cleanup() {
     if (ID_ == 0) return;
-    spdlog::debug("deleting shader: {}", shader_name);
+    spdlog::debug("Shader::cleanup: {}", shader_name);
     glDeleteShader(ID_);
 }
 void Shader::attach_to_program(GLuint prog_id) {

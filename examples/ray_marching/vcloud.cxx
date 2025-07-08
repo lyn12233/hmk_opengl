@@ -1,6 +1,7 @@
 #include "buffer_objects.hxx"
 #include "checkfail.hxx"
 #include "debug_struct.hxx"
+#include "parameter_dict.hxx"
 #include "shader_program.hxx"
 #include "sizer.hxx"
 #include "texture_objects.hxx"
@@ -14,7 +15,8 @@
 #include <spdlog/spdlog.h>
 
 #define CLOUD_VERTS 10
-using glm::pow;
+
+using namespace glwrapper;
 
 class DrawACloud : public mf::WorldViewBase {
     public:

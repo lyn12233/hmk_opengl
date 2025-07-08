@@ -1,5 +1,6 @@
 #include "textedit.hxx"
 #include "checkfail.hxx"
+#include "config.hxx"
 #include "shader_program.hxx"
 #include "stb_truetype.h"
 #include "utils.hxx"
@@ -16,6 +17,7 @@
 #include <glm/fwd.hpp>
 #include <spdlog/spdlog.h>
 
+using glwrapper::ShaderProgram;
 using mf::AsciiTex;
 using mf::StaticText;
 using mf::TextCtrl;
@@ -61,10 +63,9 @@ AsciiTex::AsciiTex(GLuint tex_height, std::string font_path) {
     descent = std::round(descent * scale);
     advance = std::round(advance * scale);
 
-    // spdlog::debug("ascent:{},descent:{},davance:{}",ascent,descent,advance);
+    spdlog::trace("FONT: ascent:{},descent:{},davance:{}", ascent, descent, advance);
 
     // img data
-    //  cv::Mat img_data(tex_height,advance*('~'-' '+1),CV_8UC1,cv::Scalar(1));
     int nb_rows = tex_height;
     int nb_cols = advance * tex_nb;
     tex_data    = std::vector<glm::u8vec4>(nb_rows * nb_cols, glm::uvec4(0));
@@ -94,9 +95,7 @@ AsciiTex::AsciiTex(GLuint tex_height, std::string font_path) {
                 int xdst = xstart + col;
                 int ydst = ystart + row;
                 if (xdst >= 0 && xdst < nb_cols && ydst >= 0 && ydst < nb_rows) {
-                    char val = bitmap[row * w + col];
-                    // auto& px = img_data.at<uchar>(ydst,xdst);
-                    // px = val;
+                    char val                        = bitmap[row * w + col];
                     tex_data[ydst * nb_cols + xdst] = glm::u8vec4(val, val, val, 255);
                 } // drawpixel/>
             }     // iter col/>
@@ -107,10 +106,6 @@ AsciiTex::AsciiTex(GLuint tex_height, std::string font_path) {
         // calc davance
         xcursor += advance;
     } // iter char/>
-
-    // cv::cvtColor(img_data, tex_data_, cv::COLOR_GRAY2RGBA);
-    // cv::imshow("ASCII Strip", tex_data_);
-    // cv::waitKey(0);
 
     from_data(reinterpret_cast<GLuint *>(tex_data.data()), nb_cols, nb_rows);
 
@@ -129,7 +124,7 @@ TextEdit::~TextEdit() {}
 
 void TextEdit::validate() {
     if (cur_pos_ < 0 || cur_pos_ > text_.size() || last_pos_ < 0 || last_pos_ > text_.size()) {
-        spdlog::error("invalid selection");
+        spdlog::error("TextEdit::validate: invalid selection");
         exit(-1);
     }
     if (!allow_trailing && cur_pos_ == text_.size() && cur_pos_ != 0) {
@@ -224,7 +219,9 @@ void TextEdit::delete_range() {
 
 TextCtrl::TextCtrl(std::string text, GLuint w, GLuint h, GLuint fontsize, mf::FLAGS style) :
     WidgetBase(w, std::max(h, fontsize), {}, style), fontsize_(fontsize), xtext(0), ytext(0),
-    ebo(GL_ELEMENT_ARRAY_BUFFER), colors{{0, 0, 0, 1}, {1, 1, 1, 1}, {1, 1, 1, 1}, {0, 0, 0, 1}} {
+    ebo(GL_ELEMENT_ARRAY_BUFFER), colors{
+                                      DEFAULT_TC_BKGD, DEFAULT_TC_FRGD, DEFAULT_TC_BKGD,
+                                      DEFAULT_TC_FRGD_INV} {
     if (!tex_) {
         tex_ = std::make_shared<AsciiTex>(fontsize);
     }
@@ -288,7 +285,7 @@ bool TextCtrl::draw(DrawableFrame &fbo) {
     dirty = false;
 
     // collect data
-    spdlog::debug("TextCtrl::draw setting data");
+    // spdlog::debug("TextCtrl::draw setting data");
     int  len  = editor.size();
     auto str  = editor.get_text();
     auto mask = editor.get_color_masks();
@@ -350,7 +347,7 @@ void TextCtrl::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
     // spdlog::debug("TextCtrl::event_at({})", (int)evt);
 
     if (evt == EVT_RESIZE) {
-        spdlog::debug(
+        spdlog::trace(
             "TextCtrl::event_at(resize),{},{},{},{}", parameter.rect.x, parameter.rect.y,
             parameter.rect.w, parameter.rect.h
         );
@@ -408,14 +405,14 @@ void TextCtrl::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
             editor.on_insert(parameter.i);
         }
     } else if (evt == EVT_FOCUS) {
-        spdlog::info("TextCtrl::event_at(EVT_FOCUS)");
+        // spdlog::debug("TextCtrl::event_at(EVT_FOCUS)");
         mark_dirty(false, false);
         if (auto win = window_.lock()) {
             win->set_focus(shared_from_this());
         }
         focus_ = true;
     } else if (evt == EVT_FOCUS_OUT) {
-        spdlog::info("TextCtrl::event_at(EVT_FOCUSOUT)");
+        spdlog::trace("TextCtrl::event_at(EVT_FOCUSOUT)");
         mark_dirty(false, false);
         focus_ = false;
     }

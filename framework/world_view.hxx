@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer_objects.hxx"
+#include "config.hxx"
 #include "utils.hxx"
 #include "widget.hxx"
 #include "window.hxx"
@@ -64,9 +65,11 @@ namespace mf {
     class WorldCamera {
         public:
         WorldCamera(
-            vec3 coord_pos = vec3(0, 0, 0), vec3 viewpoint = vec3(10, 0, 0), float move_speed = 10,
-            float spin_speed = 10, float zoom_speed_exp = 6, float zoom_speed_lin = 10,
-            CameraPerspective perspective = CameraPerspective()
+            vec3 coord_pos = DEFAULT_CAMERA_LOOKTO, vec3 viewpoint = DEFAULT_CAMERA_LOOKFROM,
+            float move_speed = DEFAULT_CAMERA_MOVE_SPEED,
+            float spin_speed = DEFAULT_CAMERA_SPIN_SPEED, float zoom_speed_exp = 6,
+            float zoom_speed_lin = 10, CameraPerspective perspective = CameraPerspective(),
+            bool spin_at_viewpoint = true
         );
         ~WorldCamera();
 
@@ -74,6 +77,8 @@ namespace mf {
         vec3  coord_pos_; // also center, position of camera coordinate
         vec3  viewpoint_; // also eye, where camera looks to camera coord center
         float dist_, theta_ /*pitch angle*/, phi_ /*orient/yaw angle*/;
+        bool  spin_at_viewpoint_;
+
         // prospective
         CameraPerspective perspective_;
 

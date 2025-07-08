@@ -10,24 +10,30 @@
 #endif
 #include <GLFW/glfw3.h>
 
-class Shader {
-    public:
-    Shader(std::string file_path = "", GLenum shader_type = GL_VERTEX_SHADER, std::string src = "");
-    Shader(Shader &&o);
-    Shader(const Shader &) = delete;
-    void operator=(Shader &&o);
-    inline ~Shader() { cleanup(); }
-    void cleanup();
+namespace glwrapper {
 
-    void set_value(std::string name, float value);
-    void set_value(std::string name, int value);
-    void attach_to_program(GLuint prog_id);
+    class Shader {
+        public:
+        Shader(
+            std::string file_path = "", GLenum shader_type = GL_VERTEX_SHADER, std::string src = ""
+        );
+        Shader(Shader &&o);
+        Shader(const Shader &) = delete;
+        void operator=(Shader &&o);
+        inline ~Shader() { cleanup(); }
+        void cleanup();
 
-    // readonly's
-    inline auto ID() { return ID_; }
-    inline bool exist() { return ID_ != 0; }
+        void set_value(std::string name, float value);
+        void set_value(std::string name, int value);
+        void attach_to_program(GLuint prog_id);
 
-    protected:
-    GLuint      ID_;
-    std::string shader_name;
-};
+        // readonly's
+        inline auto ID() { return ID_; }
+        inline bool exist() { return ID_ != 0; }
+
+        protected:
+        GLuint      ID_;
+        std::string shader_name;
+    };
+
+} // namespace glwrapper

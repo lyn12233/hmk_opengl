@@ -23,6 +23,7 @@
 using glm::cos;
 using glm::pi;
 using glm::sin;
+using namespace glwrapper;
 
 class TheTriangle : public mf::WorldViewBase {
     public:

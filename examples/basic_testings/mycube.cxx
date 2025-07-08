@@ -6,6 +6,7 @@
 using glm::mat4;
 using glm::vec3;
 using std::shared_ptr;
+using namespace glwrapper;
 
 MyCube::MyCube(vec3 tangent, vec3 bitangent, vec3 pos) :
     ebo(GL_ELEMENT_ARRAY_BUFFER), pos_(pos), tangent_(tangent), bitangent_(bitangent) {

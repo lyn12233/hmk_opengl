@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 add_library(procedural 
     volumetric_cloud.cxx
+    parameter_dict.cxx
 )
 
 target_link_libraries(procedural PUBLIC

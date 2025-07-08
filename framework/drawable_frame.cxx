@@ -1,6 +1,14 @@
 #include "drawable_frame.hxx"
 #include "buffer_objects.hxx"
+#include "shader_program.hxx"
+#include "texture_objects.hxx"
+#include <spdlog/spdlog.h>
 
+using glwrapper::BufferObject;
+using glwrapper::ShaderProgram;
+using glwrapper::TextureObject;
+using glwrapper::VertexArrayObject;
+using glwrapper::VertexBufferObject;
 using mf::DrawableFrame;
 
 // statics
@@ -142,8 +150,8 @@ mf::Rect DrawableFrame::get_draw_rect(mf::Rect r) {
 
 void DrawableFrame::validate_rect(mf::Rect rect) {
     if (!mf::Rect(0, 0, width_ + 1, height_ + 1).contains(rect)) {
-        spdlog::error("FBO::VALIDATE_RECT: viewport out of range (relative to tex size)");
-        spdlog::error(
+        spdlog::warn("FBO::VALIDATE_RECT: viewport out of range (relative to tex size)");
+        spdlog::warn(
             "{},{} !contains {},{},{},{}", width_, height_, rect.x, rect.y, rect.w, rect.h
         );
         // exit(-1);

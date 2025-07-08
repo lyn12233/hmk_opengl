@@ -10,6 +10,10 @@
 #include "stb_image.h"
 #include <spdlog/spdlog.h>
 
+using glwrapper::TextureImageData;
+using glwrapper::TextureObject;
+using glwrapper::TextureParameter;
+
 // TextureImageData
 
 TextureImageData::TextureImageData(const char *image_path) {

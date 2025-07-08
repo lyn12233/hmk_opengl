@@ -9,6 +9,11 @@
 
 #include <spdlog/spdlog.h>
 
+using glwrapper::BufferObject;
+using glwrapper::FrameBufferObject;
+using glwrapper::VertexArrayObject;
+using glwrapper::VertexBufferObject;
+
 BufferObject::BufferObject(GLenum buffer_type) : buffer_type_(buffer_type) {
     glGenBuffers(1, &ID_);
     spdlog::debug("genbuffer (id:{})", ID_);
