@@ -19,6 +19,8 @@ namespace terrain {
             array<float, nb_level> amp   = array<float, nb_level>{8, 4, 2, 1}
         );
 
+        inline void operator=(std::vector<float> v) { Array3D<float>::operator=(v); };
+
         float tex_at(glm::vec3) const;
 
         array<int, nb_level>   noise_seeds;

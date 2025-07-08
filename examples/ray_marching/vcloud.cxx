@@ -2,6 +2,7 @@
 #include "checkfail.hxx"
 #include "debug_struct.hxx"
 #include "shader_program.hxx"
+#include "sizer.hxx"
 #include "texture_objects.hxx"
 #include "types.hxx"
 #include "volumetric_cloud.hxx"
@@ -13,19 +14,22 @@
 #include <spdlog/spdlog.h>
 
 #define CLOUD_VERTS 10
+using glm::pow;
 
 class DrawACloud : public mf::WorldViewBase {
     public:
     DrawACloud() {
-        cloud_data = terrain::VolumetricCloudData(CLOUD_VERTS, CLOUD_VERTS, CLOUD_VERTS);
-        cloud_data.vectorize_inplace([](float x) {
-            return std::min<float>(glm::pow(x, 4) / 64, 1.);
-        });
+        cloud_data = terrain::VolumetricCloudData(
+            CLOUD_VERTS, CLOUD_VERTS, CLOUD_VERTS, {1, 2, 3, 4}, {1, 1. / 2, 1. / 4, 1. / 8},
+            {0., 0., 0, 1}
+        );
+        cloud_data.vectorize_inplace([](float x) { return std::max<float>(x, 0.); });
+        cloud_data.vectorize_inplace([](float x) { return std::min<float>(x * x * 32, 1); });
 
         cloud_tex =
             std::make_shared<TextureObject>("", 0, TextureParameter(), GL_R32F, GL_TEXTURE_3D);
         cloud_tex->from_data(
-            (GLuint *)cloud_data.data(), CLOUD_VERTS, CLOUD_VERTS, CLOUD_VERTS, GL_FLOAT
+            (void *)cloud_data.data(), CLOUD_VERTS, CLOUD_VERTS, CLOUD_VERTS, GL_FLOAT
         );
 
         quadvert = std::vector<float>{-1, -1, 1, -1, //
@@ -51,13 +55,13 @@ class DrawACloud : public mf::WorldViewBase {
         light_dir = vec3(0, -1, -0.3);
 
         cloud_light_cache = terrain::gen_light_cache( //
-            cloud_data, get_world2tex(offs, x0, y0, z0), light_dir, 20, 10, 1e-2, 1.0
+            cloud_data, get_world2tex(offs, x0, y0, z0), light_dir, 20, 10, 1e-2, 4
         );
 
         cloud_light_tex =
             std::make_shared<TextureObject>("", 0, TextureParameter(), GL_R32F, GL_TEXTURE_3D);
         cloud_light_tex->from_data(
-            (GLuint *)cloud_light_cache.data(), cloud_light_cache.shape()[0],
+            (void *)cloud_light_cache.data(), cloud_light_cache.shape()[0],
             cloud_light_cache.shape()[1], cloud_light_cache.shape()[2], GL_FLOAT
         );
     }
@@ -93,7 +97,7 @@ class DrawACloud : public mf::WorldViewBase {
 
         prog->set_value("bkgd_color", glm::vec3(0.53f, 0.81f, 0.92f));
         prog->set_value("light_color", glm::vec3(1.0f, 0.98f, 0.92f));
-        prog->set_value("sigma_a", 0.1f);
+        prog->set_value("sigma_a", 0.02f);
         prog->set_value("sigma_s", 0.9f);
 
         MY_CHECK_FAIL
@@ -102,9 +106,9 @@ class DrawACloud : public mf::WorldViewBase {
         return false;
     }
     static mat4 get_world2tex(vec3 offs, vec3 x0, vec3 y0, vec3 z0) {
-        auto u = glm::vec4(x0 - offs, 1);
-        auto v = glm::vec4(y0 - offs, 1);
-        auto w = glm::vec4(z0 - offs, 1);
+        auto u = glm::vec4(x0 - offs, 0);
+        auto v = glm::vec4(y0 - offs, 0);
+        auto w = glm::vec4(z0 - offs, 0);
         auto M = glm::mat4(u, v, w, vec4(offs, 1));
         return glm::inverse(M);
     }
@@ -125,11 +129,13 @@ class DrawACloud : public mf::WorldViewBase {
 
 int main() {
     auto window = std::make_shared<mf::Window>();
+    auto sizer  = std::make_shared<mf::BoxSizer>(0, 0, 0, mf::SIZER_HORIZONTAL);
     auto draw   = std::make_shared<DrawACloud>();
     draw->cloud_data.repr();
     draw->cloud_light_cache.repr();
 
-    window->set_root(draw);
+    sizer->add(draw, 1);
+    window->set_root(sizer);
     draw->event_at(mf::EVT_FOCUS, mf::Pos(), mf::Rect());
 
     window->mainloop();

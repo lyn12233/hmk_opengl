@@ -22,6 +22,8 @@ uniform float sigma_a;
 uniform float sigma_s;
 
 vec3 up = vec3(0, 1, 0);
+#define SMALL_VALUE (1e-6)
+#define MED_VALUE (1e-4)
 
 bool is_within_aabb(in vec3 aabb_max, in vec3 aabb_min, in vec3 pos) {
     vec3 aabb_center    = (aabb_max + aabb_min) / 2;
@@ -53,9 +55,13 @@ void main() {
     vec3 tmin = min(t0, t1);
     vec3 tmax = max(t0, t1);
 
-    float t_enter = max(max(tmin.x, tmin.y), tmin.z);
-    float t_exit  = min(min(tmax.x, tmax.y), tmax.z);
+    float t_enter = max(max(tmin.x, tmin.y), tmin.z) + 1e-4;
+    float t_exit  = min(min(tmax.x, tmax.y), tmax.z) - 1e-4;
     float t_step  = (t_exit - t_enter) / (nb_iter - 1);
+
+    // test correct
+    // FragColor = vec4(t_step, 0, 0, 1);
+    // return;
 
     // this always render light_color
     if (t_exit < max(t_enter, 0)) {
@@ -69,21 +75,37 @@ void main() {
 
     for (int it = 0; it < nb_iter; it++) {
         vec3 sample_pos = ro + rd * (t_enter + t_step * it);
-        vec3 cloud_uvw  = (cloud_world2tex * vec4(sample_pos, 1)).xyz;
-        vec3 light_uvw  = (light_cache_world2tex * vec4(sample_pos, 1)).xyz;
+        // works correct
+        // FragColor = vec4(sample_pos / 5, 1);
+        // return;
 
-        bool in_cloud_tex =
-            all(greaterThanEqual(cloud_uvw, vec3(0))) && all(lessThanEqual(cloud_uvw, vec3(1)));
-        bool in_light_tex =
-            all(greaterThanEqual(light_uvw, vec3(0))) && all(lessThanEqual(light_uvw, vec3(1)));
+        vec3 cloud_uvw = (cloud_world2tex * vec4(sample_pos, 1)).xyz;
+        vec3 light_uvw = (light_cache_world2tex * vec4(sample_pos, 1)).xyz;
 
-        float density   = in_cloud_tex ? texture(cloud_tex, cloud_uvw).x : 0.01;
-        float luminance = in_light_tex ? texture(light_tex, light_uvw).x : 0.01;
+        // correct
+        // FragColor = vec4(cloud_uvw, 1);
+        //  return;
+
+        bool in_cloud_tex = all(greaterThanEqual(cloud_uvw, vec3(1e-6))) &&
+                            all(lessThanEqual(cloud_uvw, vec3(1 - 1e-6)));
+        bool in_light_tex = all(greaterThanEqual(light_uvw, vec3(1e-6))) &&
+                            all(lessThanEqual(light_uvw, vec3(1 - 1e-6)));
+
+        float density   = in_cloud_tex ? texture(cloud_tex, cloud_uvw).x : 0.;
+        float luminance = in_light_tex ? texture(light_tex, light_uvw).x : 0.;
+
+        // test correct, should have same result with texture(cloud.uvw) for spec texture
+        float density2 = in_cloud_tex ? cloud_uvw.x * cloud_uvw.y * cloud_uvw.z : 0;
+        // density        = density2;
+        // should be near zero, but not
+        // density = abs(density - density2);
+        // unecessary test
+        // density = luminance;
 
         float T = exp(-density * t_step * sigma_t);
 
         transmittance *= T;
-        if (transmittance < 0.01) break;
+        // if (transmittance < 0.01) break;
 
         // color += transmittance * light_color * luminance * sigma_s / sigma_t;
         color += light_color * 0.;

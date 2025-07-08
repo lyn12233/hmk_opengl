@@ -33,13 +33,16 @@ class TextureImageData {
 
 struct TextureParameter {
     TextureParameter(
-        GLenum wrap_s = GL_REPEAT, GLenum wrap_t = GL_REPEAT, GLenum max_filt = GL_LINEAR,
-        GLenum min_filt = GL_LINEAR
+        GLenum wrap_s = GL_CLAMP_TO_EDGE, GLenum wrap_t = GL_CLAMP_TO_EDGE,
+        GLenum wrap_r = GL_CLAMP_TO_EDGE, GLenum max_filt = GL_LINEAR, GLenum min_filt = GL_LINEAR,
+        GLenum type = GL_TEXTURE_2D
     );
     GLenum wrap_s;
     GLenum wrap_t;
+    GLenum wrap_r;
     GLenum max_filt;
     GLenum min_filt;
+    GLenum type;
     void   BindParameter();
 };
 
@@ -85,13 +88,11 @@ class TextureObject {
     void flush();
 
     /// @brief wrapper for glTexImage2D. load data from pointer
-    void from_data(
-        GLuint *data, int w, int h, GLenum value_type = GL_NONE, GLenum input_format = GL_NONE
-    );
+    void
+    from_data(void *data, int w, int h, GLenum value_type = GL_NONE, GLenum input_format = GL_NONE);
     /// @brief wrapper for glTexImage3D. load data from pointer
     void from_data(
-        GLuint *data, int w, int h, int d, GLenum value_type = GL_NONE,
-        GLenum input_format = GL_NONE
+        void *data, int w, int h, int d, GLenum value_type = GL_NONE, GLenum input_format = GL_NONE
     );
     /// @brief default input value type to UNSIGNED_BYTE(8UC4) for RGBA format or GL_FLOAT(32FC1)
     /// for DEPTH_COMPONENT format

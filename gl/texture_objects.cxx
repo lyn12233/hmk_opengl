@@ -40,6 +40,9 @@ TextureObject::TextureObject(
 ) :
     name_(name),
     tex_index_(tex_index), parms(parms), format_(format), type_(type) {
+
+    parms.type = type_;
+
     validate();
     glGenTextures(1, &ID_);
 }
@@ -75,7 +78,7 @@ void TextureObject::validate() {
 
 void TextureObject::activate(GLuint at) {
     // decide tex_index
-    tex_index_ = (at == -1 ? tex_index_ : 0);
+    if (at != -1) tex_index_ = at;
     validate();
     // activate and bind
     //  NOTE: activetexture must prior to the first bindtexture call
@@ -99,7 +102,7 @@ void TextureObject::flush() {
 }
 
 void TextureObject::from_data(
-    GLuint *data, int width, int height, GLenum value_type, GLenum input_format
+    void *data, int width, int height, GLenum value_type, GLenum input_format
 ) {
     MY_CHECK_FAIL
     assert(type_ == GL_TEXTURE_2D);
@@ -132,7 +135,7 @@ void TextureObject::from_data(
 }
 
 void TextureObject::from_data(
-    GLuint *data, int width, int height, int depth, GLenum value_type, GLenum input_format
+    void *data, int width, int height, int depth, GLenum value_type, GLenum input_format
 ) {
     MY_CHECK_FAIL
     assert(type_ == GL_TEXTURE_3D);
@@ -189,7 +192,7 @@ void TextureObject::from_file(
 ) { // todo: consider clipping
     gen_mipmap_ = gen_mipmap;
     auto img    = std::make_shared<TextureImageData>(filename.c_str());
-    from_data((GLuint *)img->data(), img->width(), img->height());
+    from_data((void *)img->data(), img->width(), img->height());
     if (save) {
         spdlog::info("caching image");
         data_ = img;
@@ -198,12 +201,21 @@ void TextureObject::from_file(
 
 // TextureParameter
 
-TextureParameter::TextureParameter(GLenum wrap_s, GLenum wrap_t, GLenum max_filt, GLenum min_filt) :
-    wrap_s(wrap_s), wrap_t(wrap_t), max_filt(max_filt), min_filt(min_filt) {}
+TextureParameter::TextureParameter(
+    GLenum wrap_s, GLenum wrap_t, GLenum wrap_r, GLenum max_filt, GLenum min_filt, GLenum type
+) :
+    wrap_s(wrap_s),
+    wrap_t(wrap_t), wrap_r(wrap_r), max_filt(max_filt), min_filt(min_filt), type(type) {}
 
 void TextureParameter::BindParameter() {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filt);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, max_filt);
+    MY_CHECK_FAIL
+    if (type == GL_TEXTURE_2D || type == GL_TEXTURE_3D) {
+        glTexParameteri(type, GL_TEXTURE_WRAP_S, wrap_s);
+        glTexParameteri(type, GL_TEXTURE_WRAP_T, wrap_t);
+        glTexParameteri(type, GL_TEXTURE_MIN_FILTER, min_filt);
+        glTexParameteri(type, GL_TEXTURE_MAG_FILTER, max_filt);
+        if (type == GL_TEXTURE_3D) {
+            glTexParameteri(type, GL_TEXTURE_WRAP_R, wrap_r);
+        }
+    }
 }

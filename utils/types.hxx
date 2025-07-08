@@ -9,7 +9,6 @@
 #include <variant>
 #include <vector>
 
-
 #include <spdlog/spdlog.h>
 
 namespace terrain {
@@ -18,6 +17,7 @@ namespace terrain {
     template<typename T> class Array3D {
         public:
         Array3D<T>(int dimX = 0, int dimY = 0, int dimZ = 0);
+        void operator=(vector<T>);
 
         const T &operator[](array<int, 3> offs) const;
         T       &operator[](array<int, 3> offs);
@@ -49,6 +49,11 @@ template<typename T>
 terrain::Array3D<T>::Array3D(int dimX, int dimY, int dimZ) :
     data_(vector<T>(dimX * dimY * dimZ)), dimX_(dimX), dimY_(dimY), dimZ_(dimZ) {
     static_assert(!std::is_same_v<T, bool>, "");
+}
+
+template<typename T> void terrain::Array3D<T>::operator=(vector<T> vec) {
+    assert(vec.size() == dimX_ * dimY_ * dimZ_ && "Array3D<T>::operator=: invalid size");
+    data_ = vec;
 }
 
 template<typename T> const T &terrain::Array3D<T>::operator[](array<int, 3> offs) const {

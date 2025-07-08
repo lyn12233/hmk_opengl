@@ -1,6 +1,7 @@
 #include "volumetric_cloud.hxx"
 #include "types.hxx"
 
+#include <array>
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>
 #include <spdlog/spdlog.h>
@@ -15,16 +16,22 @@ VolumetricCloudData::VolumetricCloudData(
     Array3D<float>(dimX, dimY, dimZ),
     noise_seeds(seed), noise_scales(scale), noise_amps(amp) {
 
+    array<float, nb_level> offset;
+    for (int l = 0; l < nb_level; l++) {
+        offset[l] = stb_perlin_noise3_seed(.5, .5, .5, 0, 0, 0, seed[l]) * 0.1 + 0.5;
+    }
+
     for (int i = 0; i < dimX; i++) {
         for (int j = 0; j < dimY; j++) {
             for (int k = 0; k < dimZ; k++) {
 
                 float noise = 0;
                 for (int l = 0; l < nb_level; l++) {
-                    noise += noise_amps[l] *
-                             stb_perlin_noise3_seed(
-                                 i / scale[l], j / scale[l], k / scale[l], 0, 0, 0, seed[l]
-                             );
+                    noise +=
+                        noise_amps[l] * stb_perlin_noise3_seed(
+                                            (i + offset[l]) / scale[l], (j + offset[l]) / scale[l],
+                                            (k + offset[l]) / scale[l], 0, 0, 0, seed[l]
+                                        );
                 }
                 (*this)[{i, j, k}] = noise;
             }
