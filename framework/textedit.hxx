@@ -50,6 +50,7 @@ namespace mf {
         void on_mouse_move(GLuint at);
         void on_left();
         void on_right();
+        void on_select_all();
 
         std::vector<char> get_color_masks();
 
@@ -57,8 +58,10 @@ namespace mf {
         inline void        set_text(std::string text) { text_ = text, cur_pos_ = 0, last_pos_ = 0; }
         inline GLuint      size() { return text_.size() + has_trailing(); }
 
-        inline bool has_trailing() { return cur_pos_ == text_.size(); }
-        bool        allow_trailing;
+        inline bool has_trailing() {
+            return cur_pos_ == text_.size() && allow_trailing || text_.size() == 0;
+        }
+        bool allow_trailing;
 
         protected:
         void        delete_range();

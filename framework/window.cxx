@@ -114,6 +114,9 @@ void Window::set_title(std::string title) {
 void Window::set_root(std::shared_ptr<WidgetBase> root) {
     spdlog::debug("Window::set_root");
     root_ = root;
+    if (root_) {
+        root_->set_child_parent();
+    }
     on_resize();
 }
 void Window::set_root_window() {
@@ -178,7 +181,9 @@ void Window::default_key_callback(
     // "Window::default_key_callback (focus exists:{})", (bool)(window_inst && window_inst->focus_)
     // );
     if (window_inst && window_inst->focus_) {
-        window_inst->focus_->event_at(EVT_KEYBOARD, get_cursor_pos(window), Pos(key, action));
+        window_inst->focus_->event_at(
+            EVT_KEYBOARD, get_cursor_pos(window), Rect(key, action, modes)
+        );
     }
 }
 
@@ -186,7 +191,7 @@ void Window::default_scroll_callback(GLFWwindow *window, double x, double y) {
     auto window_inst = get_window_inst(window);
 #ifdef _DEBUG
     // spdlog::info("scroll at: {},{}",x,y);
-    window_inst->repr();
+    // window_inst->repr();
 #endif
     // the scroll is often y=\pm 1.
     if (window_inst && window_inst->root_) {

@@ -194,6 +194,10 @@ void TextEdit::on_left() {
     }
     last_pos_ = cur_pos_;
 }
+void TextEdit::on_select_all() {
+    cur_pos_  = 0;
+    last_pos_ = text_.size();
+}
 
 std::vector<char> TextEdit::get_color_masks() {
     validate();
@@ -220,8 +224,9 @@ void TextEdit::delete_range() {
 TextCtrl::TextCtrl(std::string text, GLuint w, GLuint h, GLuint fontsize, mf::FLAGS style) :
     WidgetBase(w, std::max(h, fontsize), {}, style), fontsize_(fontsize), xtext(0), ytext(0),
     ebo(GL_ELEMENT_ARRAY_BUFFER), colors{
-                                      DEFAULT_TC_BKGD, DEFAULT_TC_FRGD, DEFAULT_TC_BKGD,
-                                      DEFAULT_TC_FRGD_INV} {
+                                      DEFAULT_TC_BKGD, DEFAULT_TC_FRGD,        //
+                                      DEFAULT_TC_BKGD_INV, DEFAULT_TC_FRGD_INV //
+                                  } {
     if (!tex_) {
         tex_ = std::make_shared<AsciiTex>(fontsize);
     }
@@ -328,10 +333,15 @@ bool TextCtrl::draw(DrawableFrame &fbo) {
 
     // draw to screen
     update_text_coord();
-    // spdlog::debug("text coord: {},{},{},{}",xtext,ytext,wtext,htext);
+    // spdlog::debug("text coord: {},{},{},{}", xtext, ytext, wtext, htext);
 
     fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 0, 255});
-    fbo.viewport(Rect(xtext, ytext, wtext, htext));
+
+    fbo.viewport(Rect(
+        std::max(xtext, cur_rect.x), std::max(ytext, cur_rect.y), //
+        std::min(wtext, cur_rect.w), std::min(htext, cur_rect.h)
+    ));
+
     MY_CHECK_FAIL
     tex_->activate_sampler(prog, "texture0", 0);
     MY_CHECK_FAIL
@@ -365,20 +375,27 @@ void TextCtrl::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
 
         // no consideration on focus
 
-        auto key    = parameter.pos.x;
-        auto action = parameter.pos.y;
+        auto key    = parameter.rect.x;
+        auto action = parameter.rect.y;
+        auto modes  = parameter.rect.w;
         if (action == GLFW_PRESS) {
-            if (key == GLFW_KEY_RIGHT) {
-                editor.on_right();
-            } else if (key == GLFW_KEY_LEFT) {
-                editor.on_left();
-            } else if (key == GLFW_KEY_DELETE) {
-                editor.on_delete_();
-            } else if (key == GLFW_KEY_BACKSPACE) {
-                editor.on_backspace();
-            } else if (key == GLFW_KEY_ENTER) {
-                event_at(EVT_FOCUS_OUT, at, parameter);
-                return;
+            if (!modes) {
+                if (key == GLFW_KEY_RIGHT) {
+                    editor.on_right();
+                } else if (key == GLFW_KEY_LEFT) {
+                    editor.on_left();
+                } else if (key == GLFW_KEY_DELETE) {
+                    editor.on_delete_();
+                } else if (key == GLFW_KEY_BACKSPACE) {
+                    editor.on_backspace();
+                } else if (key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER) {
+                    event_at(EVT_FOCUS_OUT, at, parameter);
+                    return;
+                }
+            } else if ((modes & 7) == GLFW_MOD_CONTROL) {
+                if (key == GLFW_KEY_A) {
+                    editor.on_select_all();
+                }
             }
         }
 
@@ -442,8 +459,8 @@ StaticText::StaticText(std::string text, GLuint w, GLuint h, GLuint fontsize, mf
 StaticText::~StaticText() { spdlog::debug("StaticText::~StaticText"); }
 
 void StaticText::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
-    if (evt == EVT_KEYBOARD && focus_ && parameter.pos.x != GLFW_KEY_LEFT &&
-            parameter.pos.x != GLFW_KEY_RIGHT ||
+    if (evt == EVT_KEYBOARD && focus_ && parameter.rect.x != GLFW_KEY_LEFT &&
+            parameter.rect.x != GLFW_KEY_RIGHT ||
         evt == EVT_CHAR && focus_) {
         WidgetBase::event_at(evt, at, parameter);
     } else {

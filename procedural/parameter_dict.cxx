@@ -15,6 +15,7 @@
 #include <spdlog/spdlog.h>
 
 using mf::ParameterDict;
+using mf::ParameterTC;
 
 ParameterDict::ParameterDict(int entry_per_col) : BoxSizer(), entry_per_col_(entry_per_col) {}
 
@@ -26,21 +27,28 @@ ParameterDict::ParameterDict(ParameterDict_t dict, int entry_per_col) :
 ParameterDict::~ParameterDict() {}
 
 void ParameterDict::add(string name, ParameterDictVar_t value) { //
+    spdlog::debug("ParameterDict::add: add entry({})", name);
+
     auto vsizer  = acquire_line_();
     auto hsizer  = std::make_shared<BoxSizer>(0, 30, 0, mf::SIZER_HORIZONTAL);
     auto text    = std::make_shared<StaticText>(name);
-    auto var_str = std::make_shared<TextCtrl>(
-        default_var_validator(value) ? default_var_formatter(value) : ""
+    auto var_str = std::make_shared<ParameterTC>(
+        default_var_validator(value) ? default_var_formatter(value) : "", (PDTYPE)(value.index())
     );
+
     hsizer->add(text, 1.);
     hsizer->add(var_str, 2.);
     vsizer->add(hsizer, 0.);
 
     auto callback = [this, text, var_str](EVENT, Pos, EVENT_PARM) { //
         this->content_changed_ = true;
-        auto &last_var         = this->data_[text->get_text()];
-        auto  str              = var_str->get_text();
-        auto  new_str          = default_str_evaluator(last_var, str);
+
+        auto &var     = this->data_[text->get_text()];
+        auto  str     = var_str->get_text();
+        auto  new_str = default_str_evaluator(var, str);
+
+        spdlog::trace("var set to {}", default_var_formatter(this->data_[text->get_text()]));
+
         var_str->set_text(new_str);
     };
     var_str->bind_event(EVT_FOCUS_OUT, callback);
@@ -49,7 +57,7 @@ void ParameterDict::add(string name, ParameterDictVar_t value) { //
 }
 
 void ParameterDict::add(ParameterDict_t many) {
-    for (const auto &[name, value] : many) {
+    for (auto [name, value] : many) {
         add(name, value);
     }
 }
@@ -81,15 +89,42 @@ bool ParameterDict::default_var_validator(const ParameterDictVar_t &var) { retur
 
 std::string ParameterDict::default_str_evaluator(ParameterDictVar_t &var, string text) {
     if (std::holds_alternative<int64_t>(var)) {
-        return default_var_formatter(std::atoll(text.c_str()));
+        var = (int64_t)std::atoll(text.c_str());
     } else if (std::holds_alternative<double>(var)) {
-        return default_var_formatter(std::atof(text.c_str()));
+        var = (double)std::atof(text.c_str());
     } else if (std::holds_alternative<string>(var)) {
-        return text;
+        var = text;
     } else if (std::holds_alternative<vec3>(var)) {
         float x = 0, y = 0, z = 0;
         std::sscanf(text.c_str(), "%f,%f,%f", &x, &y, &z);
-        return default_var_formatter(vec3(x, y, z));
+        var = vec3(x, y, z);
+    } else {
+        return "??";
     }
-    return "??";
+    return default_var_formatter(var);
+}
+
+ParameterTC::ParameterTC(
+    std::string text, PDTYPE type, GLuint w, GLuint h, GLuint fontsize, mf::FLAGS style
+) :
+    TextCtrl(text, w, h, fontsize, style),
+    pd_type_(type) {}
+
+ParameterTC::~ParameterTC() {}
+
+void ParameterTC::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
+    if (evt == EVT_FOCUS) {
+        editor.on_select_all();
+    } else if (evt == EVT_SCROLL && focus_ && pd_type_ == PD_DOUBLE) {
+        spdlog::debug("ParameterTC::event_at (scroll)");
+        auto y = parameter.vec2.y;
+
+        ParameterDictVar_t var = 0.;
+        ParameterDict::default_str_evaluator(var, get_text());
+
+        std::get<double>(var) *= glm::exp(0.1 * y);
+        set_text(ParameterDict::default_var_formatter(var));
+        editor.on_select_all();
+    }
+    TextCtrl::event_at(evt, at, parameter);
 }

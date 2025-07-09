@@ -39,7 +39,7 @@ namespace mf {
         // common events
         EVT_RESIZE   = 0,
         EVT_LAYOUT   = 0,
-        EVT_KEYBOARD = 1, // Pos(key,action)
+        EVT_KEYBOARD = 1, // Rect(key,action,modes)
         EVT_SCROLL   = 2, // vec2(xscrl,yscrl)
         EVT_ROUTINE  = 3, //()
 

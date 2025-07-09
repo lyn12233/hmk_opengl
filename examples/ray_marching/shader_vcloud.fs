@@ -59,12 +59,14 @@ void main() {
     float t_exit  = min(min(tmax.x, tmax.y), tmax.z) - 1e-4;
     float t_step  = (t_exit - t_enter) / (nb_iter - 1);
 
+    t_enter = max(t_enter, 0);
+
     // test correct
     // FragColor = vec4(t_step, 0, 0, 1);
     // return;
 
     // this always render light_color
-    if (t_exit < max(t_enter, 0)) {
+    if (t_exit < t_enter) {
         FragColor = vec4(bkgd_color, 1);
         return;
     }
@@ -108,9 +110,15 @@ void main() {
         // if (transmittance < 0.01) break;
 
         // color += transmittance * light_color * luminance * sigma_s / sigma_t;
-        color += light_color * 0.;
+        color += transmittance * luminance * sigma_s / sigma_t;
+        // color += transmittance * luminance * 1e-1;
+        color += light_color * 0. + bkgd_color * 0.;
+
+        // test
+        //  FragColor = vec4(light_color, 1);
+        //  return;
     }
-    color += transmittance * bkgd_color;
+    // color += transmittance * bkgd_color;
 
     FragColor = vec4(color, 1.);
 }

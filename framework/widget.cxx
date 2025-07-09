@@ -64,9 +64,16 @@ void WidgetBase::calc_fixed_size() {} // assume fixed size won't change
 // add_child
 void WidgetBase::add_child(std::shared_ptr<WidgetBase> child) {
     spdlog::debug("WidgetBase::add_child(child={})", (bool)child);
-    child->parent = shared_from_this(); // failed
-    // spdlog::debug("WidgetBase::add_child: push child");
-    children.push_back(child);
+    // may be called at construction, thus this is omitted
+    // child->parent = shared_from_this(); // failed
+    if (child) children.push_back(child);
+}
+
+void WidgetBase::set_child_parent() {
+    for (const auto &c : children) {
+        c->parent = shared_from_this();
+        c->set_child_parent();
+    }
 }
 
 // set parent

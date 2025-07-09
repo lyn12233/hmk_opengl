@@ -25,9 +25,9 @@
 #define DEFAULT_TC_BKGD                                                                            \
     { 0, 0, 0, 1 }
 #define DEFAULT_TC_FRGD                                                                            \
-    { 0, 0, 0, 1 }
+    { 1, 1, 1, 1 }
 #define DEFAULT_TC_BKGD_INV                                                                        \
-    { 0, 0, 0, 1 }
+    { 1, 1, 1, 1 }
 #define DEFAULT_TC_FRGD_INV                                                                        \
     { 0, 0, 0, 1 }
 

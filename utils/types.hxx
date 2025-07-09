@@ -68,7 +68,7 @@ template<typename T> T &terrain::Array3D<T>::operator[](array<int, 3> offs) {
     assert(0 <= offs[1] && offs[1] < dimY_ && "dimY out of range");
     assert(0 <= offs[2] && offs[2] < dimZ_ && "dimZ out of range");
 
-    return data_[dimZ_ * dimY_ * offs[0] + dimY_ * offs[1] + offs[2]];
+    return data_[dimZ_ * dimY_ * offs[0] + dimZ_ * offs[1] + offs[2]];
 }
 
 template<typename T> void terrain::Array3D<T>::vectorize_inplace(std::function<T(T)> f) {
@@ -86,6 +86,9 @@ template<typename T> void *terrain::Array3D<T>::data() {
 }
 
 template<typename T> void terrain::Array3D<T>::repr() {
+    spdlog::info("Array3D<> ({},{},{})", (int)dimX_, (int)dimY_, (int)dimZ_);
+    assert(data_.size() == dimX_ * dimY_ * dimZ_ && "data_ size wrong");
+
     std::string s;
     s = "[";
     for (int x = 0; x < dimX_; ++x) {

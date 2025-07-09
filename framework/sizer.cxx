@@ -17,7 +17,7 @@ BoxSizer::BoxSizer(
     fixed_width_  = w;
     fixed_height_ = h;
     border_       = border; // border unused
-    cur_rect      = Rect(0, 0, w, h);
+    cur_rect      = Rect(0, 0, 0, 0);
     type          = (style & SIZER_BITS) == SIZER_HORIZONTAL ? HSIZER : VSIZER;
 }
 
@@ -34,7 +34,7 @@ void BoxSizer::validate() {
 } //::validate/>
 
 void BoxSizer::layout() {
-    spdlog::trace("Sizer::layout (num_child:{})", children.size());
+    // spdlog::debug("Sizer::layout (num_child:{})", children.size());
     validate();
 
     auto len    = children.size();
@@ -101,7 +101,6 @@ bool BoxSizer::draw(mf::DrawableFrame &fbo) {
 
 // event_at
 void BoxSizer::event_at(EVENT evt, Pos pos, EVENT_PARM parameter) {
-    // spdlog::debug("Sizer::event_at");
     if (evt == EVT_RESIZE) {
         if (!(parameter.rect == cur_rect)) {
             cur_rect = parameter.rect;
@@ -116,9 +115,9 @@ void BoxSizer::event_at(EVENT evt, Pos pos, EVENT_PARM parameter) {
 
 // add
 void BoxSizer::add(std::shared_ptr<WidgetBase> child, float proportion, FLAGS style) {
-    // spdlog::debug("HSizer::add(proportion={})",proportion);
+    spdlog::debug("Sizer::add(proportion={})", proportion);
     add_child(child);
-    // spdlog::debug("HSizer::add: pushback info");
+    spdlog::debug("Sizer::add: pushback info");
     proportions.push_back(proportion);
     styles.push_back(style);
 }

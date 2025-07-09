@@ -27,11 +27,11 @@ VolumetricCloudData::VolumetricCloudData(
 
                 float noise = 0;
                 for (int l = 0; l < nb_level; l++) {
-                    noise +=
-                        noise_amps[l] * stb_perlin_noise3_seed(
-                                            (i + offset[l]) / scale[l], (j + offset[l]) / scale[l],
-                                            (k + offset[l]) / scale[l], 0, 0, 0, seed[l]
-                                        );
+                    noise += noise_amps[l] * //
+                             stb_perlin_noise3_seed(
+                                 (i + offset[l]) / scale[l], (j + offset[l]) / scale[l],
+                                 (k + offset[l]) / scale[l], 0, 0, 0, seed[l]
+                             );
                 }
                 (*this)[{i, j, k}] = noise;
             }

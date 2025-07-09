@@ -66,6 +66,7 @@ namespace mf { // mini framework
         std::weak_ptr<Window>                    window_;
 
         virtual void add_child(std::shared_ptr<WidgetBase> child);
+        virtual void set_child_parent();
         virtual void set_window(std::weak_ptr<Window> win);
 
         // states

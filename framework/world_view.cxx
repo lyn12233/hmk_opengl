@@ -185,9 +185,10 @@ void WorldViewBase::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
         spdlog::debug("WorldViewBase::event_at(resize)");
         on_resize(parameter.rect);
     } else if (evt == EVT_KEYBOARD && focus_) {
-        auto key    = parameter.pos.x;
-        auto action = parameter.pos.y;
-        if (action == GLFW_PRESS) {
+        auto key    = parameter.rect.x;
+        auto action = parameter.rect.y;
+        auto modes  = parameter.rect.w;
+        if (action == GLFW_PRESS && !modes) {
             process_key_instant(key);
         }
     } else if (evt == EVT_SCROLL && focus_) { // zoom forward and backward
