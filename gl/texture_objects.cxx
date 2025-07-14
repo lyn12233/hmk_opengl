@@ -9,6 +9,7 @@
 
 #include "stb_image.h"
 #include <spdlog/spdlog.h>
+#include <stddef.h>
 
 using glwrapper::TextureImageData;
 using glwrapper::TextureObject;
@@ -16,20 +17,35 @@ using glwrapper::TextureParameter;
 
 // TextureImageData
 
-TextureImageData::TextureImageData(const char *image_path) {
+TextureImageData::TextureImageData(std::string image_path) {
     spdlog::info("loading image:{}", image_path);
     int nb_channels; // unused. always set format to RGBA
 
     // flip y axis
     stbi_set_flip_vertically_on_load(true);
 
-    data_ = stbi_load(image_path, &width_, &height_, &nb_channels, 4);
+    data_ = stbi_load(image_path.c_str(), &width_, &height_, &nb_channels, 4);
     if (!data_) {
         spdlog::error("cant load image: {}", image_path);
         exit(-1);
     }
 
-    spdlog::info("loaded image {}(width={},height={},head=...", image_path, width_, height_);
+    spdlog::info("loaded image {}(width={},height={})", image_path, width_, height_);
+}
+
+TextureImageData::TextureImageData(void *raw_image, size_t size) {
+    spdlog::info("loading from raw image");
+    int nb_channels;
+
+    stbi_set_flip_vertically_on_load(true);
+    data_ =
+        stbi_load_from_memory((unsigned char *)raw_image, size, &width_, &height_, &nb_channels, 4);
+    if (!data_) {
+        spdlog::error("cant load image(from raw)");
+        exit(-1);
+    }
+
+    spdlog::info("loaded image(width={},height={})", width_, height_);
 }
 
 TextureImageData::~TextureImageData() {
@@ -92,10 +108,11 @@ void TextureObject::activate(GLuint at) {
 void TextureObject::activate_sampler(
     std::shared_ptr<ShaderProgram> prog, std::string name, int at
 ) {
+    MY_CHECK_FAIL
     prog->use();
     activate(at);
     name_ = (name == "" ? name_ : name);
-    prog->set_value(name_.c_str(), tex_index_);
+    prog->set_value(name_, tex_index_);
 }
 void TextureObject::flush() {
     if (data_) { // shared_ptr data_ managed
@@ -191,11 +208,20 @@ GLenum TextureObject::from_data_get_input_format(GLenum input_format) {
     return input_format;
 }
 
-void TextureObject::from_file(
+void TextureObject::from_image(
     std::string filename, bool gen_mipmap, bool save
 ) { // todo: consider clipping
     gen_mipmap_ = gen_mipmap;
-    auto img    = std::make_shared<TextureImageData>(filename.c_str());
+    auto img    = std::make_shared<TextureImageData>(filename);
+    from_data((void *)img->data(), img->width(), img->height());
+    if (save) {
+        spdlog::info("caching image");
+        data_ = img;
+    }
+}
+void TextureObject::from_image(void *raw_image, size_t size, bool gen_mipmap, bool save) {
+    gen_mipmap_ = gen_mipmap;
+    auto img    = std::make_shared<TextureImageData>(raw_image, size);
     from_data((void *)img->data(), img->width(), img->height());
     if (save) {
         spdlog::info("caching image");
@@ -222,4 +248,5 @@ void TextureParameter::BindParameter() {
             glTexParameteri(type, GL_TEXTURE_WRAP_R, wrap_r);
         }
     }
+    MY_CHECK_FAIL
 }

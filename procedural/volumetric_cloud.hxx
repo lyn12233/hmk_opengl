@@ -32,4 +32,6 @@ namespace terrain {
         const VolumetricCloudData &data, glm::mat4 world2tex, glm::vec3 light_dir, float max_length,
         int nb_iter = 64, float extinction = 0.1f, float sample_rate = 1.0f
     );
+
+    Array3D<float> gen_perlin_tex(int dimx, int dimy, int dimz, float noise_scale, int seed);
 } // namespace terrain

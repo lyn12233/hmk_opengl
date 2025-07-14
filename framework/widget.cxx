@@ -50,6 +50,8 @@ void WidgetBase::event_at(EVENT evt, Pos at, EVENT_PARM parameter) {
         // spdlog::debug("WidgetBase::event_at(ROUTINE)");
         for (auto &c : children)
             c->event_at(EVT_ROUTINE, Pos(), 0);
+    } else if (evt == EVT_RESIZE) {
+        cur_rect = parameter.rect;
     } else {
         for (auto &c : children) {
             if (c->cur_rect.contains(at)) {

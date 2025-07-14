@@ -1,5 +1,6 @@
 #pragma once
 
+#include "checkfail.hxx"
 #include "shader.hxx"
 
 #include <filesystem>
@@ -48,7 +49,7 @@ namespace glwrapper {
 
         void use();
 
-        template<typename T> void set_value(const char *name, T value);
+        template<typename T> void set_value(std::string name, T value);
 
         // readonly's
         inline auto ID() { return ID_; };
@@ -62,11 +63,14 @@ namespace glwrapper {
         static std::filesystem::path find_path(std::filesystem::path p);
     };
 
-    template<typename T> void ShaderProgram::set_value(const char *name, T value) {
+    template<typename T> void ShaderProgram::set_value(std::string name, T value) {
         // use program
+        MY_CHECK_FAIL
         use();
+        MY_CHECK_FAIL
+
         // get parm location and checkfail
-        auto location = glGetUniformLocation(ID_, name);
+        auto location = glGetUniformLocation(ID_, name.c_str());
         if (location == -1) {
             spdlog::error(
                 "uniform parm not found: {} (of type:{})(prog_id: {})", name, typeid(T).name(), ID_
@@ -86,28 +90,37 @@ namespace glwrapper {
 
         if constexpr (is_same_v<T, float>) {
             glUniform1f(location, value);
+            MY_CHECK_FAIL
         } else if constexpr (is_same_v<T, int> || is_same_v<T, unsigned int>) {
             glUniform1i(location, value);
+            MY_CHECK_FAIL
         }
         // vec2, mat2
         else if constexpr (is_same_v<T, vec2>) {
             glUniform2fv(location, 1, value_ptr(value));
+            MY_CHECK_FAIL
         } else if constexpr (is_same_v<T, mat2>) {
             glUniformMatrix2fv(location, 1, GL_FALSE, value_ptr(value));
+            MY_CHECK_FAIL
         }
         // vec3, mat3
         else if constexpr (is_same_v<T, vec3>) {
             glUniform3fv(location, 1, value_ptr(value));
+            MY_CHECK_FAIL
         } else if constexpr (is_same_v<T, mat3>) {
             glUniformMatrix3fv(location, 1, GL_FALSE, value_ptr(value));
+            MY_CHECK_FAIL
         }
         // vec4, mat4
         else if constexpr (is_same_v<T, vec4>) {
             glUniform4fv(location, 1, value_ptr(value));
+            MY_CHECK_FAIL
         } else if constexpr (is_same_v<T, mat4>) {
             glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(value));
+            MY_CHECK_FAIL
         } else if constexpr (is_same_v<T, std::vector<vec4>>) {
             glUniform4fv(location, value.size(), value_ptr(value[0]));
+            MY_CHECK_FAIL
         }
     }
 

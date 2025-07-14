@@ -23,7 +23,15 @@ BufferObject::BufferObject(BufferObject &&o) : buffer_type_(o.buffer_type_), ID_
     o.ID_ = 0;
 }
 
-BufferObject::~BufferObject() {
+void BufferObject::operator=(BufferObject &&o) {
+    if (this != &o) {
+        cleanup();
+        ID_   = o.ID_;
+        o.ID_ = 0;
+    }
+}
+
+void BufferObject::cleanup() {
     MY_CHECK_FAIL
     if (ID_ == 0) return;
 
@@ -85,7 +93,15 @@ VertexArrayObject::VertexArrayObject() { glGenVertexArrays(1, &ID_); }
 
 VertexArrayObject::VertexArrayObject(VertexArrayObject &&o) : ID_(o.ID_) { o.ID_ = 0; }
 
-VertexArrayObject::~VertexArrayObject() {
+void VertexArrayObject::operator=(VertexArrayObject &&o) {
+    if (this != &o) {
+        cleanup();
+        ID_   = o.ID_;
+        o.ID_ = 0;
+    }
+}
+
+void VertexArrayObject::cleanup() {
     MY_CHECK_FAIL
     if (ID_ == 0) return;
     glDeleteVertexArrays(1, &ID_);

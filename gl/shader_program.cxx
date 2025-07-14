@@ -88,7 +88,7 @@ ShaderProgram::~ShaderProgram() {
 void ShaderProgram::use() {
     MY_CHECK_FAIL;
     glUseProgram(ID_);
-    // MY_CHECK_FAIL;//failed
+    MY_CHECK_FAIL
 }
 
 path ShaderProgram::find_path(path p) {

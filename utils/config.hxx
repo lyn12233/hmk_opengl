@@ -42,3 +42,6 @@
     { 0, 0, 0 }
 #define DEFAULT_CAMERA_MOVE_SPEED 10
 #define DEFAULT_CAMERA_SPIN_SPEED 2
+
+// for parameterdict
+#define DEFAULT_PARM_PER_COL 14

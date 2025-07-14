@@ -97,26 +97,37 @@ Array3D<float> terrain::gen_light_cache(
     int   dimz      = glm::round(shape[2] / sample_rate);
     float step_size = max_length / (nb_iter - 1);
 
+    assert(step_size > 1e-6 && step_size < 1e6);
+
     spdlog::debug("dims: ({},{},{})", dimx, dimy, dimz);
 
     auto result    = Array3D<float>(dimx, dimy, dimz);
     auto tex2world = glm::inverse(world2tex);
-    light_dir      = glm::normalize(light_dir);
 
-    float transmittance = 1.;
+    glm::vec3 rd = glm::normalize(light_dir);
 
     for (int i = 0; i < dimx; i++) {
         spdlog::debug("terrain::gen_light_cache: i={}", i);
         for (int j = 0; j < dimy; j++) {
             for (int k = 0; k < dimz; k++) {
-                glm::vec3 pos =
+                // spdlog::debug(
+                // "{}-1*{}", repr(world2tex),
+                // repr(glm::vec4((float)i / dimx, (float)j / dimy, (float)k / dimz, 1.))
+                // );
+
+                glm::vec3 ro =
                     tex2world * glm::vec4((float)i / dimx, (float)j / dimy, (float)k / dimz, 1.);
+                float transmittance = 1.;
 
                 for (int it = 0; it < nb_iter; it++) {
-                    auto      sample_pos = pos - light_dir * step_size * (float)(nb_iter - it - 1);
+                    // spdlog::debug("ro:{},rd:{},step_size:{}", repr(ro), repr(rd), step_size);
+                    auto sample_pos = ro - rd * step_size * (float)(nb_iter - it - 1);
+                    // spdlog::debug("sample_pos: {}", repr(glm::vec4(sample_pos, 1)));
+
                     glm::vec3 sample_tex_pos = world2tex * glm::vec4(sample_pos, 1.);
 
                     float density = data.tex_at(sample_tex_pos);
+                    assert(density < 1e6);
 
                     transmittance *= glm::exp(-density * extinction * step_size);
                 }
@@ -127,4 +138,23 @@ Array3D<float> terrain::gen_light_cache(
     }
 
     return result;
+}
+
+Array3D<float> terrain::gen_perlin_tex(int dimX, int dimY, int dimZ, float noise_scale, int seed) {
+    Array3D<float> array{dimX, dimY, dimZ};
+    float          offset = stb_perlin_noise3_seed(.5, .5, .5, 0, 0, 0, seed + 5) * 0.1 + 0.5;
+
+    for (int i = 0; i < dimX; i++) {
+        for (int j = 0; j < dimY; j++) {
+            for (int k = 0; k < dimZ; k++) {
+
+                array[{i, j, k}] = stb_perlin_noise3_seed(
+                    (i + offset) / noise_scale, (j + offset) / noise_scale,
+                    (k + offset) / noise_scale, 0, 0, 0, seed
+                );
+            }
+        }
+    }
+
+    return array;
 }

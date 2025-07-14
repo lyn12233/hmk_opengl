@@ -19,7 +19,8 @@ namespace glwrapper {
 
     class TextureImageData {
         public:
-        TextureImageData(const char *image_path);
+        TextureImageData(std::string image_path);
+        TextureImageData(void *raw_image, size_t size);
         ~TextureImageData();
 
         // readonly's
@@ -108,7 +109,8 @@ namespace glwrapper {
         /// @param filename
         /// @param gen_mipmap
         /// @param save save image data to data_
-        void from_file(std::string filename, bool gen_mipmap = true, bool save = true);
+        void from_image(std::string filename, bool gen_mipmap = true, bool save = true);
+        void from_image(void *raw_image, size_t size, bool gen_mipmap = true, bool save = true);
 
         // variables
         TextureParameter parms;
@@ -118,6 +120,7 @@ namespace glwrapper {
         auto inline tex_index() { return tex_index_; }
         auto inline name() { return name_; }
         auto inline tex_internal_index() { return tex_index_; }
+        auto inline type() { return type_; }
 
         private:
         GLuint      ID_;

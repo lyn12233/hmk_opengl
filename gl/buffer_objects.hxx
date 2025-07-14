@@ -30,8 +30,10 @@ namespace glwrapper {
         ///@param buffer_type type of buffer
         BufferObject(GLenum buffer_type);
         BufferObject(BufferObject &&o);
+        void operator=(BufferObject &&o);
         BufferObject(const BufferObject &) = delete;
-        ~BufferObject();
+        inline ~BufferObject() { cleanup(); };
+        void cleanup();
 
         ///@brief wrapper for glBindBuffer
         void bind();
@@ -59,6 +61,7 @@ namespace glwrapper {
         public:
         VertexBufferObject();
         ~VertexBufferObject();
+        inline void operator=(VertexBufferObject &&o) { BufferObject::operator=(std::move(o)); };
 
         // set shader in-parms, float type, data from current buffer
         void SetAttribPointer(
@@ -80,7 +83,9 @@ namespace glwrapper {
         VertexArrayObject();
         VertexArrayObject(VertexArrayObject &&o);
         VertexArrayObject(const VertexArrayObject &) = delete;
-        ~VertexArrayObject();
+        void operator=(VertexArrayObject &&o);
+        inline ~VertexArrayObject() { cleanup(); };
+        void cleanup();
 
         void bind();
         void inline unbind() { glBindVertexArray(0); }

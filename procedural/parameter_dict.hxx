@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.hxx"
 #include "sizer.hxx"
 #include "textedit.hxx"
 #include "utils.hxx"
@@ -34,8 +35,8 @@ namespace mf {
     class ParameterDict : public BoxSizer {
 
         public:
-        ParameterDict(int entry_per_col = 10);
-        ParameterDict(ParameterDict_t dict, int entry_per_col = 10);
+        ParameterDict(int entry_per_col = DEFAULT_PARM_PER_COL);
+        ParameterDict(ParameterDict_t dict, int entry_per_col = DEFAULT_PARM_PER_COL);
         ~ParameterDict() override;
 
         void add(string name, ParameterDictVar_t value);

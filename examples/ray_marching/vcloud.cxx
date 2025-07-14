@@ -11,30 +11,36 @@
 #include "window.hxx"
 #include "world_view.hxx"
 
+#include <array>
+#include <glm/fwd.hpp>
+#include <glm/geometric.hpp>
 #include <memory>
 
 #include <spdlog/spdlog.h>
+#include <string>
 
-#define TEX_PIX_PER_METER 2
-#define X0 5
-#define Y0 5
-#define Z0 5
+#define TEX_PIX_PER_METER 1
+#define X0 100.
+#define Y0 10.
+#define Z0 100.
 
 using namespace glwrapper;
 
 class DrawACloud : public mf::WorldViewBase {
     public:
     DrawACloud(std::shared_ptr<mf::ParameterDict> arguments) : arguments(arguments) {
-        cloud_tex = std::make_shared<TextureObject>(
-            "", 0, TextureParameter(), //
-            GL_R32F, GL_TEXTURE_3D
-        );
-        cloud_light_tex = std::make_shared<TextureObject>(
-            "", 0, TextureParameter(), //
-            GL_R32F, GL_TEXTURE_3D
-        );
+
+        camera                    = mf::WorldCamera(vec3(0, 0, 0), vec3(0, 0, 50));
+        camera.spin_at_viewpoint_ = false;
+
+        prog = std::make_shared<ShaderProgram>("shader_vcloud.vs", "shader_vcloud.fs");
+
+        for (auto &tex : perlin_noise_tex) {
+            tex =
+                std::make_shared<TextureObject>("", 0, TextureParameter(), GL_R32F, GL_TEXTURE_3D);
+        }
+
         update_cloud_data();
-        update_lightcache_data();
 
         quadvert = std::vector<float>{-1, -1, 1, -1, //
                                       -1, 1,  1, 1};
@@ -47,94 +53,40 @@ class DrawACloud : public mf::WorldViewBase {
         }
         vao.unbind();
 
-        prog = std::make_shared<ShaderProgram>("shader_vcloud.vs", "shader_vcloud.fs");
-
-        camera                    = mf::WorldCamera(vec3(0, 0, 0), vec3(0, 0, 50));
-        camera.spin_at_viewpoint_ = false;
-
-        offs = vec3(-X0, -Y0, -Z0);
-        x0   = vec3(X0, -Y0, -Z0);
-        y0   = vec3(-X0, Y0, -Z0);
-        z0   = vec3(-X0, -Y0, Z0);
-
-        light_color = glm::vec3(1.0f, 0.98f, 0.92f);
-
-        sigma_a = 0.02;
-        sigma_s = 0.98;
-
     } // constructor
+
+    template<typename T> T get(std::string v) { return std::get<T>((*arguments)[v]); }
+    glm::vec3              get(std::string v1, std::string v2, std::string v3) {
+        return glm::vec3(get<double>(v1), get<double>(v2), get<double>(v3));
+    }
+    glm::vec4 get(std::string v1, std::string v2, std::string v3, std::string v4) {
+        return glm::vec4(get<double>(v1), get<double>(v2), get<double>(v3), get<double>(v4));
+    }
 
     void update_cloud_data() {
         spdlog::debug("MAIN: update_cloud_data");
-        cloud_data = terrain::VolumetricCloudData(
-            TEX_PIX_PER_METER * X0, TEX_PIX_PER_METER * Y0 * 2, TEX_PIX_PER_METER * Z0, //
-            {1, 2, 3, 4},                                                               //
-            {
-                (float)std::get<double>((*arguments)["scale1"]), //
-                (float)std::get<double>((*arguments)["scale2"]), //
-                (float)std::get<double>((*arguments)["scale3"]), //
-                (float)std::get<double>((*arguments)["scale4"]), //
-            },
-            {
-                (float)std::get<double>((*arguments)["amp1"]), //
-                (float)std::get<double>((*arguments)["amp2"]), //
-                (float)std::get<double>((*arguments)["amp3"]), //
-                (float)std::get<double>((*arguments)["amp4"]), //
-            }
-        );
+        lx   = get<double>("aabb.lx");
+        ly   = get<double>("aabb.ly");
+        lz   = get<double>("aabb.lz");
+        offs = vec3(-lx, -ly, -lz);
+        x0   = vec3(lx, -ly, -lz);
+        y0   = vec3(-lx, ly, -lz);
+        z0   = vec3(-lx, -ly, lz);
 
-        cloud_data.vectorize_inplace([](float x) { return std::max<float>(x, 0.); });
-        cloud_data.vectorize_inplace([](float x) { return std::min<float>(x * x * x * x, 1); });
-        // cloud_data.repr();
-
-        MY_CHECK_FAIL
-        cloud_tex->from_data(
-            (void *)cloud_data.data(),                                                  //
-            TEX_PIX_PER_METER * X0, TEX_PIX_PER_METER * Y0 * 2, TEX_PIX_PER_METER * Z0, //
-            GL_FLOAT
-        );
-        MY_CHECK_FAIL
-    }
-
-    void update_lightcache_data() {
-        spdlog::debug("MAIN: update_lightcache_data");
-        light_dir = vec3(
-            std::get<double>((*arguments)["light.x"]), //
-            std::get<double>((*arguments)["light.y"]), //
-            std::get<double>((*arguments)["light.z"])
-        );
-
-        cloud_light_cache = terrain::gen_light_cache(               //
-            cloud_data, get_world2tex(offs, x0, y0, z0), light_dir, //
-            20,                                                     // max_length
-            10,                                                     // iter
-            std::get<double>((*arguments)["sigma_a"]) +
-                std::get<double>((*arguments)["sigma_s"]), // extinction
-            4
-        );
-
-        // cloud_light_cache.repr();
-
-        spdlog::debug("MAIN: update_lightcache_data (tex)");
-        cloud_light_tex->from_data(
-            (void *)cloud_light_cache.data(), cloud_light_cache.shape()[0],
-            cloud_light_cache.shape()[1], cloud_light_cache.shape()[2], GL_FLOAT
-        );
+        for (int i = 0; i < 4; i++) {
+            perlin_noise[i] = terrain::gen_perlin_tex(
+                lz, ly, lx, get<double>(fmt::format("scale{}", i + 1)), 114 * i
+            );
+            MY_CHECK_FAIL
+            perlin_noise_tex[i]->from_data((void *)perlin_noise[i].data(), lx, ly, lz, GL_FLOAT);
+            MY_CHECK_FAIL
+        }
     }
 
     void update_args() {
         if (arguments->query_content_changed()) {
             spdlog::debug("MAIN: argument changed, resetting");
             update_cloud_data();
-
-            sigma_a = std::get<double>((*arguments)["sigma_a"]);
-            sigma_s = std::get<double>((*arguments)["sigma_s"]);
-
-            light_color = vec3( //
-                std::get<double>((*arguments)["light.r"]),
-                std::get<double>((*arguments)["light.g"]), std::get<double>((*arguments)["light.b"])
-            );
-            update_lightcache_data();
         }
     }
 
@@ -143,11 +95,15 @@ class DrawACloud : public mf::WorldViewBase {
 
         update_args();
 
+        MY_CHECK_FAIL
         fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 0, 0});
+        MY_CHECK_FAIL
         fbo.viewport(cur_rect);
-
+        MY_CHECK_FAIL
         prog->use();
+        MY_CHECK_FAIL
         vao.bind();
+        MY_CHECK_FAIL
 
         // set uniforms
 
@@ -157,22 +113,33 @@ class DrawACloud : public mf::WorldViewBase {
         );
 
         prog->set_value("camera_pos", camera.viewpoint_);
-        // prog->set_value("camera_dir", camera.viewpoint_ - camera.coord_pos_);
         prog->set_value("world2view", camera.world2view());
 
-        prog->set_value("aabb_min", glm::vec3(-X0, -Y0, -Z0));
-        prog->set_value("aabb_max", glm::vec3(X0, Y0, Z0));
+        prog->set_value("aabb_min", glm::vec3(-lx, -ly, -lz));
+        prog->set_value("aabb_max", glm::vec3(lx, ly, lz));
 
         prog->set_value("cloud_world2tex", get_world2tex(offs, x0, y0, z0));
-        prog->set_value("light_cache_world2tex", get_world2tex(offs, x0, y0, z0));
-        cloud_tex->activate_sampler(prog, "cloud_tex", 0);
-        cloud_light_tex->activate_sampler(prog, "light_tex", 1);
-        prog->set_value("nb_iter", 10);
+        for (int i = 0; i < 4; i++) {
+            perlin_noise_tex[i]->activate_sampler(prog, fmt::format("perlin_tex{}", i + 1), i);
+            auto name = fmt::format("amp{}", i + 1);
+            prog->set_value(name, (float)get<double>(name));
+        }
+        prog->set_value("density_offs", (float)get<double>("dens_offs"));
+        prog->set_value("density_max", (float)get<double>("dens_max"));
+
+        prog->set_value("nb_iter", (int)get<double>("nb_iter"));
+        prog->set_value("nb_iter2", (int)get<double>("nb_iter2"));
+        prog->set_value("max_length", (float)(4. * std::max({lx, ly, lz})));
 
         prog->set_value("bkgd_color", glm::vec3(0.53f, 0.81f, 0.92f));
-        prog->set_value("light_color", light_color);
-        prog->set_value("sigma_a", sigma_a);
-        prog->set_value("sigma_s", sigma_s);
+        prog->set_value("light_color", get("light.r", "light.g", "light.b"));
+        prog->set_value("sigma_a", (float)get<double>("sigma_a"));
+        prog->set_value("sigma_s", (float)get<double>("sigma_s"));
+        prog->set_value("light_dir", get("light.x", "light.y", "light.z"));
+        prog->set_value(
+            "phase_parm",
+            get("phase_parm.g1", "phase_parm.g2", "phase_parm.base", "phase_parm.scale")
+        );
 
         MY_CHECK_FAIL
 
@@ -187,10 +154,8 @@ class DrawACloud : public mf::WorldViewBase {
         return glm::inverse(M);
     }
 
-    terrain::VolumetricCloudData   cloud_data;
-    std::shared_ptr<TextureObject> cloud_tex;
-    terrain::Array3D<float>        cloud_light_cache;
-    std::shared_ptr<TextureObject> cloud_light_tex;
+    std::array<terrain::Array3D<float>, 4>        perlin_noise;
+    std::array<std::shared_ptr<TextureObject>, 4> perlin_noise_tex;
 
     std::shared_ptr<ShaderProgram> prog;
 
@@ -198,7 +163,10 @@ class DrawACloud : public mf::WorldViewBase {
     VertexArrayObject  vao;
     VertexBufferObject vbo;
 
+    int  lx, ly, lz;
     vec3 offs, x0, y0, z0, light_dir, light_color;
+
+    glm::vec4 phase_parm;
 
     float sigma_a, sigma_s;
 
@@ -211,29 +179,37 @@ int main() {
     spdlog::debug("here");
     auto arguments = std::make_shared<mf::ParameterDict>( //
         mf::ParameterDict_t{
-            {"scale1", 10.},     //
-            {"scale2", 10. / 2}, //
-            {"scale3", 10. / 4}, //
-            {"scale4", 10. / 8}, //
-            {"amp1", 1.},        //
-            {"amp2", 1. / 2},    //
-            {"amp3", 1. / 4},    //
-            {"amp4", 1. / 8},    //
-            {"light.x", 0.},     //
-            {"light.y", -1.},    //
-            {"light.z", 0.3},    //
-            {"light.r", 1.00},   //
-            {"light.g", 0.98},   //
-            {"light.b", 0.92},   //
-            {"sigma_a", 0.02},   //
-            {"sigma_s", 0.98},   //
+            {"scale1", 32.},           //
+            {"scale2", 16.},           //
+            {"scale3", 8.},            //
+            {"scale4", 4.},            //
+            {"amp1", 1.},              //
+            {"amp2", 1. / 2},          //
+            {"amp3", 1. / 4},          //
+            {"amp4", 1. / 8},          //
+            {"light.x", 0.},           //
+            {"light.y", -1.},          //
+            {"light.z", 0.3},          //
+            {"light.r", 1.00},         //
+            {"light.g", 0.98},         //
+            {"light.b", 0.92},         //
+            {"sigma_a", 0.002},        //
+            {"sigma_s", 0.098},        //
+            {"phase_parm.g1", .83},    //
+            {"phase_parm.g2", .3},     //
+            {"phase_parm.base", .8},   //
+            {"phase_parm.scale", .15}, //
+            {"nb_iter", 64.},          //
+            {"nb_iter2", 10.},         //
+            {"dens_offs", -.3},        //
+            {"dens_max", .1},          //
+            {"aabb.lx", 100.},         //
+            {"aabb.ly", 10.},          //
+            {"aabb.lz", 100.},         //
         }
     );
 
     auto draw = std::make_shared<DrawACloud>(arguments);
-
-    draw->cloud_data.repr();
-    draw->cloud_light_cache.repr();
 
     sizer->add(draw, 1);
     sizer->add(arguments, 0.7);

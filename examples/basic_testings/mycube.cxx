@@ -24,8 +24,8 @@ MyCube::MyCube(vec3 tangent, vec3 bitangent, vec3 pos) :
         2, 3, 7, 2, 7, 6, 0, 4, 6, 0, 6, 2, 1, 7, 5, 1, 3, 7,
     };
 
-    diffuse.from_file("tex_diffuse.jpg");
-    specular.from_file("tex_specular.jpg");
+    diffuse.from_image("tex_diffuse.jpg");
+    specular.from_image("tex_specular.jpg");
 
     MY_CHECK_FAIL
     vao.bind();

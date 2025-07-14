@@ -1,7 +1,9 @@
 #pragma once
 
+#include "types.hxx"
 #include <array>
 #include <cassert>
+#include <fmt/format.h>
 #include <functional>
 #include <map>
 #include <stddef.h>
@@ -9,9 +11,11 @@
 #include <variant>
 #include <vector>
 
+#include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 
 namespace terrain {
+    using glm::vec4;
     using std::array;
     using std::vector;
     template<typename T> class Array3D {
@@ -40,7 +44,41 @@ namespace terrain {
 } // namespace terrain
 
 namespace mf {
+    using glm::vec2;
+    using glm::vec3;
+    using glm::vec4;
     typedef std::map<std::string, std::variant<int, float>> ShaderArgumentDict;
+    struct VertexAttr {
+        vec3 pos, n, tangent, bitangent;
+        vec2 tex_coord;
+        vec4 c;
+        bool has_n : 1;
+        bool has_tan : 1;
+        bool has_tex : 1;
+        bool has_c : 1;
+    };
+} // namespace mf
+
+template<typename T> std::string repr(const T &var) {
+    if constexpr (std::is_same_v<T, glm::mat4>) {
+        glm::mat4 v = var;
+        return fmt::format(
+            "mat4[\n\t{}\n\t{}\n\t{}\n\t{}\n]", repr(v[0]), repr(v[1]), repr(v[2]), repr(v[3])
+        );
+    } else if constexpr (std::is_same_v<T, glm::vec4>) {
+        glm::vec4 v = var;
+        return fmt::format("vec4[{},{},{},{}]", v.x, v.y, v.z, v.w);
+    } else if constexpr (std::is_same_v<T, glm::vec3>) {
+        glm::vec3 v = var;
+        return fmt::format("vec3[{},{},{}]", v.x, v.y, v.z);
+    } else if constexpr (std::is_same_v<T, mf::VertexAttr>) {
+        mf::VertexAttr v = var;
+        return fmt::format(
+            "vertex({},{},{};{}{}{})", v.pos.x, v.pos.y, v.pos.z, "n"[v.has_n], "t"[v.has_tex],
+            "c"[v.has_c]
+        );
+    }
+    return "";
 }
 
 // implementations
