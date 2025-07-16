@@ -1,6 +1,7 @@
 #include "window.hxx"
 #include "buffer_objects.hxx"
 #include "checkfail.hxx"
+#include "drawable_frame.hxx"
 #include "glfw_inst.hxx"
 #include "utils.hxx"
 #include "widget.hxx"
@@ -40,7 +41,7 @@ Window::Window(GLuint w, GLuint h, std::string title) : width_(w), height_(h), t
     glfwSetCharCallback(window_, default_char_callback);
 
     // fbo
-    fbo_ = std::make_unique<DrawableFrame>(width_, height_);
+    fbo_ = std::make_shared<DrawableFrame>(width_, height_);
     MY_CHECK_FAIL
 }
 Window::~Window() {
@@ -69,10 +70,14 @@ void Window::bind() { glfwMakeContextCurrent(window_); }
 // resize
 void Window::on_resize(int w, int h) {
     spdlog::debug("Window::on_resize");
+
     width_  = w;
     height_ = h;
-    fbo_->set_cur_rect(mf::Rect(0, 0, w, h));
-    fbo_->resize(w, h);
+
+    // fbo_->set_cur_rect(mf::Rect(0, 0, w, h));
+    // fbo_->resize(w, h);// masked out
+    fbo_ = std::make_shared<DrawableFrame>(width_, height_);
+
     if (root_) {
         root_->event_at(EVT_RESIZE, Pos(), Rect(0, 0, width_, height_));
     } else {
@@ -97,6 +102,7 @@ void Window::draw() {
         MY_CHECK_FAIL
         fbo_->unbind();
     }
+
     glViewport(0, 0, width_, height_);
     fbo_->draw();
     MY_CHECK_FAIL

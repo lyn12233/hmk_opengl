@@ -2,6 +2,7 @@
 #include "buffer_objects.hxx"
 #include "shader_program.hxx"
 #include "texture_objects.hxx"
+#include "utils.hxx"
 #include <spdlog/spdlog.h>
 
 using glwrapper::BufferObject;
@@ -80,7 +81,19 @@ DrawableFrame::DrawableFrame(
     MY_CHECK_FAIL
 }
 
-DrawableFrame::~DrawableFrame() {
+DrawableFrame &DrawableFrame::operator=(DrawableFrame &&o) {
+    if (this != &o) {
+        nb_inst_++;
+        cleanup();
+
+        glwrapper::FrameBufferObject::operator=(std::move(o));
+
+        cur_rect_ = o.cur_rect_;
+    }
+    return *this;
+}
+
+void DrawableFrame::cleanup() {
     MY_CHECK_FAIL
     nb_inst_--;
     if (nb_inst_ == 0) {
@@ -102,25 +115,39 @@ void DrawableFrame::draw(bool to_frame) {
 }
 
 // bind+viewport
-void DrawableFrame::viewport(mf::Rect rect) {
+mf::Rect DrawableFrame::viewport(mf::Rect rect) {
     bind();
 
+    // std::string log = fmt::format("viewport: {},{},{},{}->", rect.x, rect.y, rect.w, rect.h);
+
     rect = get_draw_rect(rect);
+
+    // log += fmt::format("{},{},{},{}", rect.x, rect.y, rect.w, rect.h);
+
+    // log += fmt::format(
+    //     "\tbuff size: {},{}\ton screen: {},{},{},{}\tglviewport: {},{},{},{}", width_, height_,
+    //     cur_rect_.x, cur_rect_.y, cur_rect_.w, cur_rect_.h, rect.x, height_ - rect.y - rect.h,
+    //     rect.w, rect.h
+    // );
+    // spdlog::debug(log);
+
     validate_rect(rect);
     glViewport(rect.x, height_ - rect.y - rect.h, rect.w, rect.h);
     MY_CHECK_FAIL
+    return mf::Rect(rect.x, height_ - rect.y - rect.h, rect.w, rect.h);
 }
 
 // bind+viewport+clear
 void DrawableFrame::clear_color(mf::Rect rect, GLenum bits, glm::u8vec4 color) {
-    viewport(rect); // bind+viewport
+    auto gl_rect = viewport(rect); // bind_fbo+viewport
     glClearColor(color.x, color.y, color.z, color.w);
     MY_CHECK_FAIL
 
     // scissor clear
     rect = get_draw_rect(rect);
+
     glEnable(GL_SCISSOR_TEST);
-    glScissor(rect.x, height_ - rect.y - rect.h, rect.w, rect.h);
+    glScissor(gl_rect.x, gl_rect.y, gl_rect.w, gl_rect.h);
     glClear(bits);
     glDisable(GL_SCISSOR_TEST);
     MY_CHECK_FAIL
@@ -157,3 +184,5 @@ void DrawableFrame::validate_rect(mf::Rect rect) {
         // exit(-1);
     }
 }
+
+void DrawableFrame::set_cur_rect(mf::Rect rect) { cur_rect_ = rect; }

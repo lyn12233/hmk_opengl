@@ -21,17 +21,19 @@ namespace mf {
             GLuint width = DEFAULT_FBO_WIDTH, GLuint height = DEFAULT_FBO_HEIGHT,
             bool require_color_buffer = true, bool require_depth_buffer = true
         );
-        ~DrawableFrame();
+        DrawableFrame &operator=(DrawableFrame &&o);
+        inline ~DrawableFrame() { cleanup(); };
+        void cleanup();
 
         // draw utilities
 
         void draw(bool to_frame = true);
 
-        void viewport(mf::Rect rect);
-        void clear_color(
-            mf::Rect rect, GLenum bits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
-            glm::u8vec4 color = DEFAULT_CLEAR_COLOR
-        );
+        mf::Rect viewport(mf::Rect rect);
+        void     clear_color(
+                mf::Rect rect, GLenum bits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
+                glm::u8vec4 color = DEFAULT_CLEAR_COLOR
+            );
         void paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect);
         void paste_fbo(FrameBufferObject &fbo2, mf::Rect rect);
 
@@ -41,10 +43,11 @@ namespace mf {
         mf::Rect get_draw_rect(mf::Rect r);
 
         // set output rect relative to screen
-        inline void set_cur_rect(mf::Rect rect) { cur_rect_ = rect; }
+        void set_cur_rect(mf::Rect rect);
 
         // resize tex0
         inline void resize(int w, int h) {
+            assert(false && "fbo resize unimplemented");
             tex0_->from_data(nullptr, w, h);
             width_ = w, height_ = h;
         }

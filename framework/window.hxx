@@ -57,7 +57,7 @@ namespace mf {
         std::shared_ptr<WidgetBase> focus_;
 
         // managed screen output buffer, can enable downsampling for further use
-        std::unique_ptr<DrawableFrame> fbo_;
+        std::shared_ptr<DrawableFrame> fbo_;
 
         public:
         static Window *get_window_inst(GLFWwindow *window);

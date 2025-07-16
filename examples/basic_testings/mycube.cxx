@@ -1,5 +1,6 @@
 #include "mycube.hxx"
 #include "drawable_frame.hxx"
+#include "world_view.hxx"
 
 #include <glm/fwd.hpp>
 
@@ -47,10 +48,11 @@ MyWorld::MyWorld() {
     MY_CHECK_FAIL
     // auto cube=std::make_shared<MyCube>(vec3(0,0,0),vec3(1,1,0),vec3(0,1,1));
     cubes.push_back(cube);
-    type = mf::WORLD_VIEW;
+    type   = mf::WORLD_VIEW;
+    camera = mf::WorldCamera({0, 0, 0}, {0, 0, 5});
 }
 bool MyWorld::draw(mf::DrawableFrame &fbo) {
-    fbo.clear_color(cur_rect);
+    fbo.clear_color(cur_rect); // bind +viewport+clear
     glEnable(GL_DEPTH_TEST);
     MY_CHECK_FAIL
     for (auto cube : cubes) {

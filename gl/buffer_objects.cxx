@@ -115,10 +115,12 @@ void VertexArrayObject::bind() {
 // framebuffer
 
 FrameBufferObject::FrameBufferObject(
-    GLuint width, GLuint height, bool require_color_buffer, bool require_depth_buffer
+    GLuint width, GLuint height, bool require_color_buffer /*=true*/,
+    bool require_depth_buffer /*=true*/
 ) :
     width_(width),
-    height_(height) {
+    height_(height) // unused?
+{
     // init buffer
     glGenFramebuffers(1, &ID_);
 
@@ -161,7 +163,7 @@ FrameBufferObject::FrameBufferObject(FrameBufferObject &&o) :
     o.ID_ = 0;
 }
 
-FrameBufferObject::~FrameBufferObject() {
+void FrameBufferObject::cleanup() {
     MY_CHECK_FAIL
     if (ID_ == 0) return;
 
@@ -170,6 +172,22 @@ FrameBufferObject::~FrameBufferObject() {
     MY_CHECK_FAIL
 
     spdlog::info("deleted frame buffer(id={})", ID_);
+}
+
+FrameBufferObject &FrameBufferObject::operator=(FrameBufferObject &&o) {
+    if (this != &o) {
+        cleanup();
+
+        ID_     = o.ID_;
+        width_  = o.width_;
+        height_ = o.height_;
+
+        tex0_      = std::move(o.tex0_);
+        tex_depth_ = std::move(o.tex_depth_);
+
+        o.ID_ = 0;
+    }
+    return *this;
 }
 
 void FrameBufferObject::bind() {

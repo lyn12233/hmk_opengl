@@ -102,7 +102,9 @@ namespace glwrapper {
         );
         FrameBufferObject(FrameBufferObject &&o);
         FrameBufferObject(const FrameBufferObject &) = delete;
-        ~FrameBufferObject();
+        FrameBufferObject &operator=(FrameBufferObject &&o);
+        inline ~FrameBufferObject() { cleanup(); };
+        void cleanup();
 
         void bind();
         void inline unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
