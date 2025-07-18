@@ -48,7 +48,7 @@ namespace mf {
         // resize tex0
         inline void resize(int w, int h) {
             assert(false && "fbo resize unimplemented");
-            tex0_->from_data(nullptr, w, h);
+            color_attachments[0]->from_data(nullptr, w, h);
             width_ = w, height_ = h;
         }
 

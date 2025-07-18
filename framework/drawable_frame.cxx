@@ -110,7 +110,7 @@ void DrawableFrame::draw(bool to_frame) {
     }
     cp_prog->use();
     cp_vao->bind();
-    tex0_->activate_sampler(cp_prog, "texture0");
+    color_attachments[0]->activate_sampler(cp_prog, "texture0");
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 

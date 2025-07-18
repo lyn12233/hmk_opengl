@@ -88,6 +88,8 @@ mf::Mesh Model::process_mesh_(aiMesh *mesh, const aiScene *scene) {
         if (mesh->HasNormals()) {
             auto m_norm = mesh->mNormals[i];
             vertex.n    = vec3(m_norm.x, m_norm.y, m_norm.z);
+        } else {
+            vertex.n = vec3(0);
         }
 
         vertex.has_tan = mesh->HasTangentsAndBitangents();
@@ -99,14 +101,16 @@ mf::Mesh Model::process_mesh_(aiMesh *mesh, const aiScene *scene) {
         }
 
         // only use one texture coord?
-        vertex.has_tex = mesh->HasTextureCoordsName(i);
-        if (mesh->HasTextureCoords(i)) {
+        vertex.has_tex = mesh->HasTextureCoords(0);
+        if (mesh->HasTextureCoords(0)) {
             auto m_tex       = mesh->mTextureCoords[0][i];
             vertex.tex_coord = vec2(m_tex.x, m_tex.y);
+        } else {
+            vertex.tex_coord = vec2(0);
         }
 
-        vertex.has_c = mesh->HasVertexColors(i);
-        if (mesh->HasVertexColors(i)) {
+        vertex.has_c = mesh->HasVertexColors(0);
+        if (mesh->HasVertexColors(0)) {
             auto color = mesh->mColors[0][i];
             vertex.c   = vec4(color.r, color.g, color.b, color.a);
         }
@@ -160,7 +164,9 @@ Model::load_texture_(aiMaterial *material, aiTextureType tp, string name, const 
             spdlog::info("Model::load_texture_(path: {})", s_path);
 
             // gen tex
-            cur_tex = std::make_shared<glwrapper::TextureObject>(name);
+            cur_tex = std::make_shared<glwrapper::TextureObject>(
+                name, 0, glwrapper::TextureParameter(), GL_RGBA8, GL_TEXTURE_2D
+            );
 
             // is embedded tex
             if (!s_path.empty() && s_path[0] == '*') {
@@ -169,9 +175,7 @@ Model::load_texture_(aiMaterial *material, aiTextureType tp, string name, const 
                 if (tex->mHeight == 0) {
                     cur_tex->from_image(tex->pcData, tex->mWidth);
                 } else {
-                    cur_tex->from_data(
-                        tex->pcData, tex->mWidth, tex->mHeight, GL_UNSIGNED_BYTE, GL_RGBA
-                    );
+                    cur_tex->from_data(tex->pcData, tex->mWidth, tex->mHeight);
                 }
             } else {
                 cur_tex->from_image(s_path);

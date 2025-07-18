@@ -40,6 +40,7 @@ namespace glwrapper {
             GLenum wrap_r = GL_CLAMP_TO_EDGE, GLenum max_filt = GL_LINEAR,
             GLenum min_filt = GL_LINEAR, GLenum type = GL_TEXTURE_2D
         );
+        TextureParameter(std::string type);
         GLenum wrap_s;
         GLenum wrap_t;
         GLenum wrap_r;
@@ -66,7 +67,7 @@ namespace glwrapper {
             std::string      name      = "", // internal name for texure
             GLuint           tex_index = 0,  // GL_TEXURE<x> also the value for uniform sampler2D
             TextureParameter parms     = TextureParameter(),
-            GLenum           format    = GL_RGBA, // assume format won't change throughout lifetime
+            GLenum           format    = GL_RGBA8, // assume format won't change throughout lifetime
             GLenum           type      = GL_TEXTURE_2D
         );
 
@@ -91,6 +92,8 @@ namespace glwrapper {
         /// @brief flush data_(:texture_image_data) when texture<x> is truncated. unused(?)
         void flush();
 
+        // setting texture data, size and format
+
         /// @brief wrapper for glTexImage2D. load data from pointer
         void from_data(
             void *data, int w, int h, GLenum value_type = GL_NONE, GLenum input_format = GL_NONE
@@ -100,10 +103,12 @@ namespace glwrapper {
             void *data, int w, int h, int d, GLenum value_type = GL_NONE,
             GLenum input_format = GL_NONE
         );
-        /// @brief default input value type to UNSIGNED_BYTE(8UC4) for RGBA format or
-        /// GL_FLOAT(32FC1) for DEPTH_COMPONENT format
-        GLenum from_data_get_value_type(GLenum value_type);
-        GLenum from_data_get_input_format(GLenum input_format);
+        inline GLenum from_data_parse_value_type(GLenum value_type) {
+            return value_type == GL_NONE ? format_map[format_].value : value_type;
+        };
+        inline GLenum from_data_parse_input_format(GLenum input_format) {
+            return input_format == GL_NONE ? format_map[format_].format : input_format;
+        }
 
         /// @brief read 2d texture from file
         /// @param filename
@@ -124,7 +129,7 @@ namespace glwrapper {
 
         private:
         GLuint      ID_;
-        GLuint      tex_index_; // always valid
+        GLuint      tex_index_;
         std::string name_;
         GLenum      format_;
         GLenum      type_;
@@ -132,6 +137,12 @@ namespace glwrapper {
         std::shared_ptr<TextureImageData> data_;
 
         bool gen_mipmap_;
+
+        typedef struct {
+            GLenum format;
+            GLenum value;
+        } f_v;
+        static std::map<GLenum, f_v> format_map;
     };
 
 } // namespace glwrapper

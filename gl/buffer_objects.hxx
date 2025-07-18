@@ -11,6 +11,7 @@
 
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
+#include <vector>
 
 #ifndef __gl_h_
     #include <glad/glad.h>
@@ -98,7 +99,7 @@ namespace glwrapper {
         public:
         FrameBufferObject(
             GLuint width = DEFAULT_FBO_WIDTH, GLuint height = DEFAULT_FBO_HEIGHT,
-            bool require_color_buffer = true, bool require_depth_buffer = true
+            int nb_color_attachment = 1, bool require_depth_buffer = true
         );
         FrameBufferObject(FrameBufferObject &&o);
         FrameBufferObject(const FrameBufferObject &) = delete;
@@ -110,15 +111,15 @@ namespace glwrapper {
         void inline unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
         // readonly's
-        inline auto tex0() { return tex0_; } // not necessary
+        inline auto tex0() { return color_attachments[0]; } // not necessary
 
         inline auto width() { return width_; }
         inline auto height() { return height_; }
 
         protected:
-        GLuint                         ID_;
-        std::shared_ptr<TextureObject> tex0_;
-        std::shared_ptr<TextureObject> tex_depth_;
+        GLuint                                      ID_;
+        std::vector<std::shared_ptr<TextureObject>> color_attachments;
+        std::shared_ptr<TextureObject>              tex_depth_;
 
         // size of framebuffer
         GLuint width_;

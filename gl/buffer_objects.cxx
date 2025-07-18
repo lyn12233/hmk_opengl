@@ -115,7 +115,7 @@ void VertexArrayObject::bind() {
 // framebuffer
 
 FrameBufferObject::FrameBufferObject(
-    GLuint width, GLuint height, bool require_color_buffer /*=true*/,
+    GLuint width, GLuint height, int nb_color_attachment /*=true*/,
     bool require_depth_buffer /*=true*/
 ) :
     width_(width),
@@ -127,21 +127,22 @@ FrameBufferObject::FrameBufferObject(
     // bind
     bind();
     // associate tex
-    if (require_color_buffer) {
-        tex0_ = std::make_shared<TextureObject>("texture0");
-        tex0_->from_data(nullptr, width_, height_);
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex0_->ID(),
-            0 // no mipmap
+    nb_color_attachment = std::max(nb_color_attachment, 1);
+    for (int i = 0; i < nb_color_attachment; i++) {
+        auto tex = std::make_shared<TextureObject>( //
+            "", 0, TextureParameter("gbuffer"), GL_RGBA32F
         );
-    } else { // select NONE color att for fbo
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
+        tex->from_data(nullptr, width_, height_);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex->ID(), 0
+        );
+        color_attachments.push_back(tex);
     }
+
     // associate depth buffer
     if (require_depth_buffer) {
         tex_depth_ = std::make_shared<TextureObject>(
-            "texture_depth", 0, TextureParameter(), GL_DEPTH_COMPONENT
+            "texture_depth", 0, TextureParameter(), GL_DEPTH_COMPONENT24
         );
         tex_depth_->from_data(nullptr, width_, height_);
         glFramebufferTexture2D(
@@ -158,8 +159,8 @@ FrameBufferObject::FrameBufferObject(
 } // fbo constructor/>
 
 FrameBufferObject::FrameBufferObject(FrameBufferObject &&o) :
-    ID_(o.ID_), tex0_(std::move(o.tex0_)), tex_depth_(std::move(o.tex_depth_)), width_(o.width_),
-    height_(o.height_) {
+    ID_(o.ID_), color_attachments(std::move(o.color_attachments)),
+    tex_depth_(std::move(o.tex_depth_)), width_(o.width_), height_(o.height_) {
     o.ID_ = 0;
 }
 
@@ -182,8 +183,8 @@ FrameBufferObject &FrameBufferObject::operator=(FrameBufferObject &&o) {
         width_  = o.width_;
         height_ = o.height_;
 
-        tex0_      = std::move(o.tex0_);
-        tex_depth_ = std::move(o.tex_depth_);
+        color_attachments = std::move(o.color_attachments);
+        tex_depth_        = std::move(o.tex_depth_);
 
         o.ID_ = 0;
     }

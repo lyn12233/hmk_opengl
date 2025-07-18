@@ -24,9 +24,12 @@ void main() {
     vec3  R    = reflect(-L, N);
     float spec = pow(max(dot(R, V), 0.0), 32.0);
 
-    vec4 diff_color = texture(Cylinder_001.diffuse, tex_coord);
-    vec4 spec_color = texture(Cylinder_001.specular, tex_coord);
+    vec2 tex_coord_ = tex_coord;
+
+    tex_coord_.y = 1 - tex_coord.y;
+
+    vec4 diff_color = texture(Cylinder_001.diffuse, tex_coord_);
+    vec4 spec_color = texture(Cylinder_001.specular, tex_coord_);
 
     FragColor = (0.1 + 0.6 * diff) * diff_color + 0.3 * spec * spec_color;
-    // FragColor = vec4(1);
 }

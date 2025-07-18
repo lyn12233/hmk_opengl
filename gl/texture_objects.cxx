@@ -86,7 +86,7 @@ void TextureObject::validate() {
         spdlog::error("invalid texture index:{}", tex_index_);
         exit(-1);
     }
-    if (format_ != GL_RGBA && format_ != GL_DEPTH_COMPONENT && format_ != GL_R32F) {
+    if (format_map.count(format_) == 0) {
         spdlog::error("invalid texture format:{}", (int)format_);
         exit(-1);
     }
@@ -127,8 +127,8 @@ void TextureObject::from_data(
 ) {
     MY_CHECK_FAIL
     assert(type_ == GL_TEXTURE_2D);
-    value_type   = from_data_get_value_type(value_type);
-    input_format = from_data_get_input_format(input_format);
+    value_type   = from_data_parse_value_type(value_type);
+    input_format = from_data_parse_input_format(input_format);
 
     // bind context
     bind();
@@ -160,8 +160,8 @@ void TextureObject::from_data(
 ) {
     MY_CHECK_FAIL
     assert(type_ == GL_TEXTURE_3D);
-    value_type   = from_data_get_value_type(value_type);
-    input_format = from_data_get_input_format(input_format);
+    value_type   = from_data_parse_value_type(value_type);
+    input_format = from_data_parse_input_format(input_format);
 
     // bind context
     bind();
@@ -186,28 +186,6 @@ void TextureObject::from_data(
     MY_CHECK_FAIL
 }
 
-GLenum TextureObject::from_data_get_value_type(GLenum value_type) {
-    if (value_type == GL_NONE) {
-        if (format_ == GL_RGBA)
-            value_type = GL_UNSIGNED_BYTE; // default 8UC4
-        else if (format_ == GL_DEPTH_COMPONENT || format_ == GL_R32F)
-            value_type = GL_FLOAT; // default 32FC1
-    }
-    return value_type;
-}
-
-GLenum TextureObject::from_data_get_input_format(GLenum input_format) {
-    if (input_format == GL_NONE) {
-        if (format_ == GL_RGBA)
-            input_format = GL_RGBA;
-        else if (format_ == GL_R32F)
-            input_format = GL_RED;
-        else if (format_ == GL_DEPTH_COMPONENT)
-            input_format = GL_DEPTH_COMPONENT;
-    }
-    return input_format;
-}
-
 void TextureObject::from_image(
     std::string filename, bool gen_mipmap, bool save
 ) { // todo: consider clipping
@@ -229,6 +207,16 @@ void TextureObject::from_image(void *raw_image, size_t size, bool gen_mipmap, bo
     }
 }
 
+std::map<GLenum, TextureObject::f_v> TextureObject::format_map = {
+    {GL_R8, {GL_RED, GL_UNSIGNED_BYTE}},
+    {GL_R32F, {GL_RED, GL_FLOAT}},
+    {GL_RGB8, {GL_RGB, GL_UNSIGNED_BYTE}},
+    {GL_RGBA8, {GL_RGBA, GL_UNSIGNED_BYTE}},
+    {GL_RGBA32F, {GL_RGBA, GL_FLOAT}},
+    {GL_DEPTH_COMPONENT24, {GL_DEPTH_COMPONENT, GL_UNSIGNED_INT}},
+    {GL_DEPTH_COMPONENT32F, {GL_DEPTH_COMPONENT, GL_FLOAT}},
+};
+
 // TextureParameter
 
 TextureParameter::TextureParameter(
@@ -236,6 +224,16 @@ TextureParameter::TextureParameter(
 ) :
     wrap_s(wrap_s),
     wrap_t(wrap_t), wrap_r(wrap_r), max_filt(max_filt), min_filt(min_filt), type(type) {}
+
+TextureParameter::TextureParameter(std::string type) {
+    if (type == "gbuffer") {
+        ::TextureParameter(
+            GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST
+        );
+    } else {
+        ::TextureParameter();
+    }
+}
 
 void TextureParameter::BindParameter() {
     MY_CHECK_FAIL

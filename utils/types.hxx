@@ -74,8 +74,8 @@ template<typename T> std::string repr(const T &var) {
     } else if constexpr (std::is_same_v<T, mf::VertexAttr>) {
         mf::VertexAttr v = var;
         return fmt::format(
-            "vertex({},{},{};{}{}{})", v.pos.x, v.pos.y, v.pos.z, "n"[v.has_n], "t"[v.has_tex],
-            "c"[v.has_c]
+            "vertex({:.3f},{:.3f},{:.3f};{:.3f},{:.3f};{}{}{})", v.pos.x, v.pos.y, v.pos.z,
+            v.tex_coord.x, v.tex_coord.y, "n"[!v.has_n], "t"[!v.has_tex], "c"[!v.has_c]
         );
     }
     return "";

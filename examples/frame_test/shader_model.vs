@@ -2,6 +2,7 @@
 
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNorm;
+layout(location = 4) in vec2 aTex;
 layout(location = 5) in vec4 aColor;
 
 out vec3 pos;
@@ -15,5 +16,6 @@ void main() {
     pos         = aPos;
     norm        = aNorm;
     color       = aColor;
+    tex_coord   = aTex;
     gl_Position = world2clip * vec4(pos, 1);
 }
