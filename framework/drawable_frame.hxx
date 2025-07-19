@@ -19,7 +19,7 @@ namespace mf {
         public:
         DrawableFrame(
             GLuint width = DEFAULT_FBO_WIDTH, GLuint height = DEFAULT_FBO_HEIGHT,
-            bool require_color_buffer = true, bool require_depth_buffer = true
+            int nb_color_attachment = 1, bool require_depth_buffer = true
         );
         DrawableFrame &operator=(DrawableFrame &&o);
         inline ~DrawableFrame() { cleanup(); };

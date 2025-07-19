@@ -68,7 +68,8 @@ namespace glwrapper {
             GLuint           tex_index = 0,  // GL_TEXURE<x> also the value for uniform sampler2D
             TextureParameter parms     = TextureParameter(),
             GLenum           format    = GL_RGBA8, // assume format won't change throughout lifetime
-            GLenum           type      = GL_TEXTURE_2D
+            GLenum           type      = GL_TEXTURE_2D, // texture type
+            bool             gen_mipmap = false
         );
 
         TextureObject(TextureObject &&o);
@@ -88,9 +89,6 @@ namespace glwrapper {
         /// @brief activate + set shader_program uniform value
         void
         activate_sampler(std::shared_ptr<ShaderProgram> prog, std::string name = "", int at = -1);
-
-        /// @brief flush data_(:texture_image_data) when texture<x> is truncated. unused(?)
-        void flush();
 
         // setting texture data, size and format
 
@@ -114,8 +112,10 @@ namespace glwrapper {
         /// @param filename
         /// @param gen_mipmap
         /// @param save save image data to data_
-        void from_image(std::string filename, bool gen_mipmap = true, bool save = true);
-        void from_image(void *raw_image, size_t size, bool gen_mipmap = true, bool save = true);
+        void from_image(std::string filename, bool save = true);
+        void from_image(void *raw_image, size_t size, bool save = true);
+
+        void repr();
 
         // variables
         TextureParameter parms;

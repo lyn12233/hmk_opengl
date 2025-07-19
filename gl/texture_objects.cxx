@@ -56,12 +56,16 @@ TextureImageData::~TextureImageData() {
 // TextureObject
 
 TextureObject::TextureObject(
-    std::string name, GLuint tex_index, TextureParameter parms, GLenum format, GLenum type
+    std::string name, GLuint tex_index, TextureParameter parms, GLenum format, GLenum type,
+    bool gen_mipmap
 ) :
     name_(name),
-    tex_index_(tex_index), parms(parms), format_(format), type_(type) {
+    tex_index_(tex_index),        //
+    parms(parms),                 //
+    format_(format), type_(type), //
+    gen_mipmap_(gen_mipmap) {
 
-    parms.type = type_;
+    this->parms.type = type;
 
     validate();
     glGenTextures(1, &ID_);
@@ -113,13 +117,6 @@ void TextureObject::activate_sampler(
     activate(at);
     name_ = (name == "" ? name_ : name);
     prog->set_value(name_, tex_index_);
-}
-void TextureObject::flush() {
-    if (data_) { // shared_ptr data_ managed
-        from_data((GLuint *)data_->data(), data_->width(), data_->height());
-    } else {
-        spdlog::warn("TextureObject::flush: warn: texture data not available");
-    }
 }
 
 void TextureObject::from_data(
@@ -186,25 +183,35 @@ void TextureObject::from_data(
     MY_CHECK_FAIL
 }
 
-void TextureObject::from_image(
-    std::string filename, bool gen_mipmap, bool save
-) { // todo: consider clipping
-    gen_mipmap_ = gen_mipmap;
-    auto img    = std::make_shared<TextureImageData>(filename);
+void TextureObject::from_image(std::string filename, bool save) {
+    auto img = std::make_shared<TextureImageData>(filename);
     from_data((void *)img->data(), img->width(), img->height());
     if (save) {
         spdlog::info("caching image");
         data_ = img;
     }
 }
-void TextureObject::from_image(void *raw_image, size_t size, bool gen_mipmap, bool save) {
-    gen_mipmap_ = gen_mipmap;
-    auto img    = std::make_shared<TextureImageData>(raw_image, size);
+void TextureObject::from_image(void *raw_image, size_t size, bool save) {
+    auto img = std::make_shared<TextureImageData>(raw_image, size);
     from_data((void *)img->data(), img->width(), img->height());
     if (save) {
         spdlog::info("caching image");
         data_ = img;
     }
+}
+
+void TextureObject::repr() {
+    bind();
+    int width, height;
+    glGetTexLevelParameteriv(type_, 0, GL_TEXTURE_WIDTH, &width);
+    glGetTexLevelParameteriv(type_, 0, GL_TEXTURE_HEIGHT, &height);
+    auto tex_data = std::vector<float>(width * height * 4);
+    glGetTexImage(type_, 0, format_map[format_].format, GL_FLOAT, tex_data.data());
+    std::string log = "[";
+    for (auto f : tex_data) {
+        log += fmt::format("{:.3f} ", f);
+    }
+    spdlog::debug(log + "]");
 }
 
 std::map<GLenum, TextureObject::f_v> TextureObject::format_map = {
@@ -227,11 +234,17 @@ TextureParameter::TextureParameter(
 
 TextureParameter::TextureParameter(std::string type) {
     if (type == "gbuffer") {
-        ::TextureParameter(
-            GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST
+        *this = ::TextureParameter(
+            GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST,
+            GL_TEXTURE_2D
+        );
+    } else if (type == "tex2d") {
+        *this = ::TextureParameter(
+            GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR,
+            GL_TEXTURE_2D
         );
     } else {
-        ::TextureParameter();
+        *this = ::TextureParameter();
     }
 }
 
@@ -239,12 +252,20 @@ void TextureParameter::BindParameter() {
     MY_CHECK_FAIL
     if (type == GL_TEXTURE_2D || type == GL_TEXTURE_3D) {
         glTexParameteri(type, GL_TEXTURE_WRAP_S, wrap_s);
+        MY_CHECK_FAIL
         glTexParameteri(type, GL_TEXTURE_WRAP_T, wrap_t);
+        MY_CHECK_FAIL
         glTexParameteri(type, GL_TEXTURE_MIN_FILTER, min_filt);
+        MY_CHECK_FAIL
         glTexParameteri(type, GL_TEXTURE_MAG_FILTER, max_filt);
+        MY_CHECK_FAIL
         if (type == GL_TEXTURE_3D) {
             glTexParameteri(type, GL_TEXTURE_WRAP_R, wrap_r);
+            MY_CHECK_FAIL
         }
+    } else {
+        spdlog::debug("TextureParameter::BindParameter: unkwon texture type: {}", (int)type);
+        exit(-1);
     }
     MY_CHECK_FAIL
 }

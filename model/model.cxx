@@ -128,7 +128,7 @@ mf::Mesh Model::process_mesh_(aiMesh *mesh, const aiScene *scene) {
     auto   material  = scene->mMaterials[mesh->mMaterialIndex];
     string mesh_name = mesh->mName.C_Str();
     for (auto &s : mesh_name) {
-        s = (s == '.' ? '_' : s);
+        s = (s == '.' || s == '-' ? '_' : s);
     }
 
     for (auto [tp, nm] : vector<std::pair<aiTextureType, string>>{

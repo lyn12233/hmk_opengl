@@ -115,8 +115,7 @@ void VertexArrayObject::bind() {
 // framebuffer
 
 FrameBufferObject::FrameBufferObject(
-    GLuint width, GLuint height, int nb_color_attachment /*=true*/,
-    bool require_depth_buffer /*=true*/
+    GLuint width, GLuint height, int nb_color_attachment /*=1*/, bool require_depth_buffer /*=true*/
 ) :
     width_(width),
     height_(height) // unused?
@@ -128,31 +127,38 @@ FrameBufferObject::FrameBufferObject(
     bind();
     // associate tex
     nb_color_attachment = std::max(nb_color_attachment, 1);
+
     for (int i = 0; i < nb_color_attachment; i++) {
+        spdlog::debug("FrameBufferObject::FrameBufferObject: gen color att ({})", i);
+
         auto tex = std::make_shared<TextureObject>( //
             "", 0, TextureParameter("gbuffer"), GL_RGBA32F
         );
         tex->from_data(nullptr, width_, height_);
+
         glFramebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex->ID(), 0
         );
+
         color_attachments.push_back(tex);
     }
 
     // associate depth buffer
     if (require_depth_buffer) {
-        tex_depth_ = std::make_shared<TextureObject>(
-            "texture_depth", 0, TextureParameter(), GL_DEPTH_COMPONENT24
-        );
+        spdlog::debug("FrameBufferObject::FrameBufferObject: gen depth att");
+
+        tex_depth_ =
+            std::make_shared<TextureObject>("", 0, TextureParameter(), GL_DEPTH_COMPONENT24);
         tex_depth_->from_data(nullptr, width_, height_);
+
         glFramebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_depth_->ID(), 0
         );
     }
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        spdlog::error("framebuffer incomplete");
-        exit(-1);
-    }
+
+    // check completeness
+    validate();
+
     // unbind
     unbind();
 
@@ -189,6 +195,13 @@ FrameBufferObject &FrameBufferObject::operator=(FrameBufferObject &&o) {
         o.ID_ = 0;
     }
     return *this;
+}
+
+void FrameBufferObject::validate() {
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        spdlog::error("framebuffer incomplete");
+        exit(-1);
+    }
 }
 
 void FrameBufferObject::bind() {

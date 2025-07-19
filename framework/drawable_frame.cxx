@@ -1,5 +1,6 @@
 #include "drawable_frame.hxx"
 #include "buffer_objects.hxx"
+#include "checkfail.hxx"
 #include "shader_program.hxx"
 #include "texture_objects.hxx"
 #include "utils.hxx"
@@ -42,13 +43,14 @@ out vec4 FragColor;                     \n\
 uniform sampler2D texture0;             \n\
 void main() {                           \n\
     FragColor = texture(texture0, uv);  \n\
+    FragColor.w = 1;  \n\
 }";
 std::shared_ptr<ShaderProgram> DrawableFrame::cp_prog{};
 
 DrawableFrame::DrawableFrame(
-    GLuint width, GLuint height, bool require_color_buffer, bool require_depth_buffer
+    GLuint width, GLuint height, int nb_color_attachment, bool require_depth_buffer
 ) :
-    FrameBufferObject(width, height, require_color_buffer, require_depth_buffer),
+    FrameBufferObject(width, height, nb_color_attachment, require_depth_buffer),
     cur_rect_(0, 0, width, height) {
 
     // utilities init parms and prog
@@ -105,6 +107,7 @@ void DrawableFrame::cleanup() {
 }
 
 void DrawableFrame::draw(bool to_frame) {
+
     if (to_frame) {
         unbind(); // not necessary. suppose draw target is bound outside
     }
@@ -154,7 +157,10 @@ void DrawableFrame::clear_color(mf::Rect rect, GLenum bits, glm::u8vec4 color) {
 }
 
 void DrawableFrame::paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect) {
+    assert(tex->type() == GL_TEXTURE_2D && "tex not 2d");
+
     clear_color(rect); // bind+viewport+clear
+
     // paste tex
     cp_prog->use();
     cp_vao->bind();
@@ -168,6 +174,7 @@ void DrawableFrame::paste_fbo(FrameBufferObject &fbo2, mf::Rect rect) {
 }
 
 mf::Rect DrawableFrame::get_draw_rect(mf::Rect r) {
+    // usually for full screen, rect eqs cur_rect
     return mf::Rect(
         (r.x - cur_rect_.x) * (int)width_ / cur_rect_.w,
         (r.y - cur_rect_.y) * (int)height_ / cur_rect_.h, r.w * (int)width_ / cur_rect_.w,

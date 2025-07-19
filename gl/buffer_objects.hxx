@@ -107,11 +107,15 @@ namespace glwrapper {
         inline ~FrameBufferObject() { cleanup(); };
         void cleanup();
 
+        /// @brief validate fbo completeness
+        void validate();
+
         void bind();
         void inline unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
         // readonly's
         inline auto tex0() { return color_attachments[0]; } // not necessary
+        inline auto tex(int i) { return color_attachments[i]; }
 
         inline auto width() { return width_; }
         inline auto height() { return height_; }
