@@ -132,7 +132,7 @@ FrameBufferObject::FrameBufferObject(
         spdlog::debug("FrameBufferObject::FrameBufferObject: gen color att ({})", i);
 
         auto tex = std::make_shared<TextureObject>( //
-            "", 0, TextureParameter("gbuffer"), GL_RGBA32F
+            "", 0, TextureParameter("discrete"), GL_RGBA32F
         );
         tex->from_data(nullptr, width_, height_);
 

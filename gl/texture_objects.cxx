@@ -233,12 +233,12 @@ TextureParameter::TextureParameter(
     wrap_t(wrap_t), wrap_r(wrap_r), max_filt(max_filt), min_filt(min_filt), type(type) {}
 
 TextureParameter::TextureParameter(std::string type) {
-    if (type == "gbuffer") {
+    if (type == "discrete") {
         *this = ::TextureParameter(
             GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_NEAREST, GL_NEAREST,
             GL_TEXTURE_2D
         );
-    } else if (type == "tex2d") {
+    } else if (type == "smooth") {
         *this = ::TextureParameter(
             GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR,
             GL_TEXTURE_2D

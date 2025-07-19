@@ -8,6 +8,7 @@ foreach(test_targ defer_render_test)
 endforeach()
 
 
-file(GLOB_RECURSE shader_files "shader*")
+file(GLOB_RECURSE shader_files "*s")
+message(STATUS "shader files: ${shader_files}")
 file(GLOB_RECURSE tex_files "tex*")
 install(FILES ${shader_files} ${tex_files} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
