@@ -65,11 +65,13 @@ namespace mf {
     class WorldCamera {
         public:
         WorldCamera(
-            vec3 coord_pos = DEFAULT_CAMERA_LOOKTO, vec3 viewpoint = DEFAULT_CAMERA_LOOKFROM,
+            vec3              coord_pos   = DEFAULT_CAMERA_LOOKTO, //
+            vec3              viewpoint   = DEFAULT_CAMERA_LOOKFROM,
+            CameraPerspective perspective = CameraPerspective(),
+
             float move_speed = DEFAULT_CAMERA_MOVE_SPEED,
             float spin_speed = DEFAULT_CAMERA_SPIN_SPEED, float zoom_speed_exp = 6,
-            float zoom_speed_lin = 10, CameraPerspective perspective = CameraPerspective(),
-            bool spin_at_viewpoint = true
+            float zoom_speed_lin = 10, bool spin_at_viewpoint = true
         );
         ~WorldCamera();
 

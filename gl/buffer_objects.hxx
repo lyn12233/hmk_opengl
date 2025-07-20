@@ -116,6 +116,7 @@ namespace glwrapper {
         // readonly's
         inline auto tex0() { return color_attachments[0]; } // not necessary
         inline auto tex(int i) { return color_attachments[i]; }
+        inline auto tex_depth() { return tex_depth_; }
 
         inline auto width() { return width_; }
         inline auto height() { return height_; }

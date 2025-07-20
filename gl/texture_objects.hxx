@@ -115,7 +115,7 @@ namespace glwrapper {
         void from_image(std::string filename, bool save = true);
         void from_image(void *raw_image, size_t size, bool save = true);
 
-        void repr();
+        void repr(int nb_component = 4);
 
         // variables
         TextureParameter parms;

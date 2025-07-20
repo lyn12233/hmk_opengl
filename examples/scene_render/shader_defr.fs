@@ -12,7 +12,7 @@ in vec2 tex_coord;
 
 out vec4 FragColor;
 
-uniform vec3 light_dir;
+uniform vec3 light_pos;
 uniform vec3 view_pos;
 
 uniform struct {

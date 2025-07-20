@@ -38,8 +38,8 @@ void CameraPerspective::repr(int level) {
 }
 
 WorldCamera::WorldCamera(
-    vec3 coord_pos, vec3 viewpoint, float move_speed, float spin_speed, float zoom_speed_exp,
-    float zoom_speed_lin, CameraPerspective perspective, bool spin_at_viewpoint
+    vec3 coord_pos, vec3 viewpoint, CameraPerspective perspective, float move_speed,
+    float spin_speed, float zoom_speed_exp, float zoom_speed_lin, bool spin_at_viewpoint
 ) :                        // camera origin and target
     coord_pos_(coord_pos), //
     viewpoint_(viewpoint), //

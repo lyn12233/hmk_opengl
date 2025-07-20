@@ -200,16 +200,24 @@ void TextureObject::from_image(void *raw_image, size_t size, bool save) {
     }
 }
 
-void TextureObject::repr() {
+void TextureObject::repr(int nb_component) {
     bind();
     int width, height;
     glGetTexLevelParameteriv(type_, 0, GL_TEXTURE_WIDTH, &width);
     glGetTexLevelParameteriv(type_, 0, GL_TEXTURE_HEIGHT, &height);
-    auto tex_data = std::vector<float>(width * height * 4);
+    auto tex_data = std::vector<float>(width * height * nb_component);
     glGetTexImage(type_, 0, format_map[format_].format, GL_FLOAT, tex_data.data());
     std::string log = "[";
+    int         i   = 0;
     for (auto f : tex_data) {
         log += fmt::format("{:.3f} ", f);
+        i++;
+        if (i % nb_component == 0) {
+            log += ";";
+        }
+        if (i % (width * nb_component) == 0) {
+            log += "\n";
+        }
     }
     spdlog::debug(log + "]");
 }

@@ -126,21 +126,26 @@ FrameBufferObject::FrameBufferObject(
     // bind
     bind();
     // associate tex
-    nb_color_attachment = std::max(nb_color_attachment, 1);
+    nb_color_attachment = std::max(nb_color_attachment, 0);
 
-    for (int i = 0; i < nb_color_attachment; i++) {
-        spdlog::debug("FrameBufferObject::FrameBufferObject: gen color att ({})", i);
+    if (nb_color_attachment > 0) {
+        for (int i = 0; i < nb_color_attachment; i++) {
+            spdlog::debug("FrameBufferObject::FrameBufferObject: gen color att ({})", i);
 
-        auto tex = std::make_shared<TextureObject>( //
-            "", 0, TextureParameter("discrete"), GL_RGBA32F
-        );
-        tex->from_data(nullptr, width_, height_);
+            auto tex = std::make_shared<TextureObject>( //
+                "", 0, TextureParameter("discrete"), GL_RGBA32F
+            );
+            tex->from_data(nullptr, width_, height_);
 
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex->ID(), 0
-        );
+            glFramebufferTexture2D(
+                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex->ID(), 0
+            );
 
-        color_attachments.push_back(tex);
+            color_attachments.push_back(tex);
+        }
+    } else {
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
     }
 
     // associate depth buffer
