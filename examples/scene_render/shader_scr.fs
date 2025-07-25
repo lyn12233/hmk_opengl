@@ -43,7 +43,7 @@ void main() {
 
     // Lighting vectors
     vec3 N = norm;
-    vec3 L = normalize(light_pos);
+    vec3 L = normalize(light_pos - pos);
     vec3 V = normalize(view_pos - pos);
     vec3 H = normalize(L + V);
 

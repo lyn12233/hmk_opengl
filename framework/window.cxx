@@ -52,17 +52,6 @@ Window::~Window() {
     MY_CHECK_FAIL
     fbo_.reset();
     MY_CHECK_FAIL
-    // widget tree is destroyed second
-    if (root_) {
-        spdlog::debug("resetting root_(refs={})", root_.use_count());
-        root_.reset(); // decrease refcount and set root_ nullptr
-        MY_CHECK_FAIL
-        spdlog::debug("root_ reset");
-    }
-    // glfwMakeContextCurrent(nullptr);//failed. gl context not completely released
-    // MY_CHECK_FAIL
-    // glfwDestroyWindow(window_);
-    // MY_CHECK_FAIL
 }
 
 // bind

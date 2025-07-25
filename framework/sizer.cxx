@@ -115,9 +115,8 @@ void BoxSizer::event_at(EVENT evt, Pos pos, EVENT_PARM parameter) {
 
 // add
 void BoxSizer::add(std::shared_ptr<WidgetBase> child, float proportion, FLAGS style) {
-    spdlog::debug("Sizer::add(proportion={})", proportion);
+    spdlog::debug("Sizer::add(proportion={}, style={})", proportion, (int)style);
     add_child(child);
-    spdlog::debug("Sizer::add: pushback info");
     proportions.push_back(proportion);
     styles.push_back(style);
 }

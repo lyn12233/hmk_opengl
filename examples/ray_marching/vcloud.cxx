@@ -15,9 +15,9 @@
 #include <glm/fwd.hpp>
 #include <glm/geometric.hpp>
 #include <memory>
+#include <string>
 
 #include <spdlog/spdlog.h>
-#include <string>
 
 #define TEX_PIX_PER_METER 1
 #define X0 100.

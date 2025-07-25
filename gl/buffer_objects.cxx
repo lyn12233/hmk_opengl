@@ -16,7 +16,7 @@ using glwrapper::VertexBufferObject;
 
 BufferObject::BufferObject(GLenum buffer_type) : buffer_type_(buffer_type) {
     glGenBuffers(1, &ID_);
-    spdlog::debug("genbuffer (id:{})", ID_);
+    spdlog::debug("BufferObject::BufferObject(id={})", ID_);
 }
 
 BufferObject::BufferObject(BufferObject &&o) : buffer_type_(o.buffer_type_), ID_(o.ID_) {
@@ -35,7 +35,7 @@ void BufferObject::cleanup() {
     MY_CHECK_FAIL
     if (ID_ == 0) return;
 
-    spdlog::debug("deleting buffer(type={},id={})", buffer_type_, ID_);
+    spdlog::debug("BufferObject::cleanup(type={},id={})", buffer_type_, ID_);
     validate();
     glDeleteBuffers(1, &ID_);
     MY_CHECK_FAIL

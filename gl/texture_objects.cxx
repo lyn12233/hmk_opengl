@@ -79,7 +79,7 @@ TextureObject::TextureObject(TextureObject &&o) :
 
 TextureObject::~TextureObject() {
     if (ID_ == 0) return;
-    spdlog::debug("deleting TextureObject (id={})", ID_);
+    spdlog::debug("TextureObject::~TextureObject(id={})", ID_);
     glDeleteTextures(1, &ID_);
 }
 
@@ -207,8 +207,9 @@ void TextureObject::repr(int nb_component) {
     glGetTexLevelParameteriv(type_, 0, GL_TEXTURE_HEIGHT, &height);
     auto tex_data = std::vector<float>(width * height * nb_component);
     glGetTexImage(type_, 0, format_map[format_].format, GL_FLOAT, tex_data.data());
-    std::string log = "[";
-    int         i   = 0;
+    std::string log = fmt::format("{}x{}[", width, height);
+
+    int i = 0;
     for (auto f : tex_data) {
         log += fmt::format("{:.3f} ", f);
         i++;
@@ -227,6 +228,7 @@ std::map<GLenum, TextureObject::f_v> TextureObject::format_map = {
     {GL_R32F, {GL_RED, GL_FLOAT}},
     {GL_RGB8, {GL_RGB, GL_UNSIGNED_BYTE}},
     {GL_RGBA8, {GL_RGBA, GL_UNSIGNED_BYTE}},
+    {GL_RGB32F, {GL_RGB, GL_FLOAT}},
     {GL_RGBA32F, {GL_RGBA, GL_FLOAT}},
     {GL_DEPTH_COMPONENT24, {GL_DEPTH_COMPONENT, GL_UNSIGNED_INT}},
     {GL_DEPTH_COMPONENT32F, {GL_DEPTH_COMPONENT, GL_FLOAT}},
