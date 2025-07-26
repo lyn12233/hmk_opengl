@@ -29,18 +29,20 @@ namespace mf {
 
         void draw(bool to_frame = true);
 
-        mf::Rect viewport(mf::Rect rect);
-        void     clear_color(
-                mf::Rect rect, GLenum bits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
-                glm::u8vec4 color = DEFAULT_CLEAR_COLOR
-            );
-        void paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect);
-        void paste_fbo(FrameBufferObject &fbo2, mf::Rect rect);
+        mf::Rect viewport(mf::Rect rect) const;
+
+        void clear_color(
+            mf::Rect rect, GLenum bits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
+            glm::u8vec4 color = DEFAULT_CLEAR_COLOR
+        ) const;
+
+        void paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect) const;
+        void paste_fbo(FrameBufferObject &fbo2, mf::Rect rect) const;
 
         // rect pasting logic
 
         // get the rect relative to texture
-        mf::Rect get_draw_rect(mf::Rect r);
+        mf::Rect get_draw_rect(mf::Rect r) const;
 
         // set output rect relative to screen
         void set_cur_rect(mf::Rect rect);
@@ -52,7 +54,7 @@ namespace mf {
             width_ = w, height_ = h;
         }
 
-        void validate_rect(mf::Rect rect);
+        void validate_rect(mf::Rect rect) const;
 
         protected:
         // the output rect relative to screen

@@ -49,7 +49,7 @@ namespace glwrapper {
 
         void use();
 
-        template<typename T> void set_value(std::string name, T value);
+        template<typename T> void set_value(std::string name, T value, bool silence = false);
 
         // readonly's
         inline auto ID() { return ID_; };
@@ -63,7 +63,7 @@ namespace glwrapper {
         static std::filesystem::path find_path(std::filesystem::path p);
     };
 
-    template<typename T> void ShaderProgram::set_value(std::string name, T value) {
+    template<typename T> void ShaderProgram::set_value(std::string name, T value, bool silence) {
         // use program
         MY_CHECK_FAIL
         use();
@@ -71,7 +71,7 @@ namespace glwrapper {
 
         // get parm location and checkfail
         auto location = glGetUniformLocation(ID_, name.c_str());
-        if (location == -1) {
+        if (location == -1 && !silence) {
             spdlog::error(
                 "uniform parm not found: {} (of type:{})(prog_id: {})", name, typeid(T).name(), ID_
             );

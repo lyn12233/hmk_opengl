@@ -37,11 +37,11 @@ namespace glwrapper {
         void cleanup();
 
         ///@brief wrapper for glBindBuffer
-        void bind();
+        void bind() const;
 
         ///@ingroup gl_wrappers
         ///@brief wrapper for glIsBuffer, abort if failed
-        void validate();
+        void validate() const;
 
         ///@brief wrapper for glBufferData
         ///@param size size of data in bytes
@@ -88,8 +88,8 @@ namespace glwrapper {
         inline ~VertexArrayObject() { cleanup(); };
         void cleanup();
 
-        void bind();
-        void inline unbind() { glBindVertexArray(0); }
+        void bind() const;
+        void inline unbind() const { glBindVertexArray(0); }
 
         private:
         GLuint ID_;
@@ -108,18 +108,18 @@ namespace glwrapper {
         void cleanup();
 
         /// @brief validate fbo completeness
-        void validate();
+        void validate() const;
 
-        void bind();
-        void inline unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+        void bind() const;
+        void inline unbind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
         // readonly's
-        inline auto tex0() { return color_attachments[0]; } // not necessary
-        inline auto tex(int i) { return color_attachments[i]; }
-        inline auto tex_depth() { return tex_depth_; }
+        inline auto tex0() const { return color_attachments[0]; } // not necessary
+        inline auto tex(int i) const { return color_attachments[i]; }
+        inline auto tex_depth() const { return tex_depth_; }
 
-        inline auto width() { return width_; }
-        inline auto height() { return height_; }
+        inline auto width() const { return width_; }
+        inline auto height() const { return height_; }
 
         protected:
         GLuint                                      ID_;

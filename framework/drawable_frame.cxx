@@ -118,7 +118,7 @@ void DrawableFrame::draw(bool to_frame) {
 }
 
 // bind+viewport
-mf::Rect DrawableFrame::viewport(mf::Rect rect) {
+mf::Rect DrawableFrame::viewport(mf::Rect rect) const {
     bind();
 
     // std::string log = fmt::format("viewport: {},{},{},{}->", rect.x, rect.y, rect.w, rect.h);
@@ -141,7 +141,7 @@ mf::Rect DrawableFrame::viewport(mf::Rect rect) {
 }
 
 // bind+viewport+clear
-void DrawableFrame::clear_color(mf::Rect rect, GLenum bits, glm::u8vec4 color) {
+void DrawableFrame::clear_color(mf::Rect rect, GLenum bits, glm::u8vec4 color) const {
     auto gl_rect = viewport(rect); // bind_fbo+viewport
     glClearColor(color.x, color.y, color.z, color.w);
     MY_CHECK_FAIL
@@ -156,7 +156,7 @@ void DrawableFrame::clear_color(mf::Rect rect, GLenum bits, glm::u8vec4 color) {
     MY_CHECK_FAIL
 }
 
-void DrawableFrame::paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect) {
+void DrawableFrame::paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect) const {
     assert(tex->type() == GL_TEXTURE_2D && "tex not 2d");
 
     clear_color(rect); // bind+viewport+clear
@@ -168,12 +168,12 @@ void DrawableFrame::paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect)
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void DrawableFrame::paste_fbo(FrameBufferObject &fbo2, mf::Rect rect) {
+void DrawableFrame::paste_fbo(FrameBufferObject &fbo2, mf::Rect rect) const {
     auto tex = fbo2.tex0();
     paste_tex(tex, rect); // clear+paste_tex
 }
 
-mf::Rect DrawableFrame::get_draw_rect(mf::Rect r) {
+mf::Rect DrawableFrame::get_draw_rect(mf::Rect r) const {
     // usually for full screen, rect eqs cur_rect
     return mf::Rect(
         (r.x - cur_rect_.x) * (int)width_ / cur_rect_.w,
@@ -182,7 +182,7 @@ mf::Rect DrawableFrame::get_draw_rect(mf::Rect r) {
     );
 }
 
-void DrawableFrame::validate_rect(mf::Rect rect) {
+void DrawableFrame::validate_rect(mf::Rect rect) const {
     if (!mf::Rect(0, 0, width_ + 1, height_ + 1).contains(rect)) {
         spdlog::warn("FBO::VALIDATE_RECT: viewport out of range (relative to tex size)");
         spdlog::warn(

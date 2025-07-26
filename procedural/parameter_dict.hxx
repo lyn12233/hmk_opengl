@@ -50,6 +50,10 @@ namespace mf {
             }
             return data_[name];
         }
+        template<typename T> inline T get(string name) { return std::get<T>((*this)[name]); }
+        inline vec3                   get(string a, string b, string c) {
+            return vec3(get<double>(a), get<double>(b), get<double>(c));
+        }
 
         inline bool query_content_changed() {
             bool ret         = content_changed_;

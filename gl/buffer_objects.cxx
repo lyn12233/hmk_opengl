@@ -41,13 +41,13 @@ void BufferObject::cleanup() {
     MY_CHECK_FAIL
 }
 
-void BufferObject::bind() {
+void BufferObject::bind() const {
     MY_CHECK_FAIL
-    glBindBuffer(buffer_type(), ID());
+    glBindBuffer(buffer_type_, ID_);
 }
 
-void BufferObject::validate() {
-    if (glIsBuffer(ID()) != GL_TRUE) {
+void BufferObject::validate() const {
+    if (glIsBuffer(ID_) != GL_TRUE) {
         spdlog::error("operating on invalid buffer(type={},id={})", buffer_type_, ID_);
         exit(-1);
     }
@@ -107,7 +107,7 @@ void VertexArrayObject::cleanup() {
     glDeleteVertexArrays(1, &ID_);
 }
 
-void VertexArrayObject::bind() {
+void VertexArrayObject::bind() const {
     MY_CHECK_FAIL
     glBindVertexArray(ID_);
 }
@@ -202,14 +202,14 @@ FrameBufferObject &FrameBufferObject::operator=(FrameBufferObject &&o) {
     return *this;
 }
 
-void FrameBufferObject::validate() {
+void FrameBufferObject::validate() const {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         spdlog::error("framebuffer incomplete");
         exit(-1);
     }
 }
 
-void FrameBufferObject::bind() {
+void FrameBufferObject::bind() const {
     MY_CHECK_FAIL
     glBindFramebuffer(GL_FRAMEBUFFER, ID_);
 }

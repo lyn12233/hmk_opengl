@@ -1,0 +1,152 @@
+#include "scene_pipeline.hxx"
+#include "buffer_objects.hxx"
+#include "checkfail.hxx"
+#include "drawable_frame.hxx"
+#include "hmk4_config.hxx"
+#include "model.hxx"
+#include "shader_program.hxx"
+#include "utils.hxx"
+
+#include <memory>
+#include <spdlog/spdlog.h>
+
+using namespace hmk4_models;
+
+void ModelBase::draw_gbuffer(glm::mat4 world2clip, glm::mat4 world2view) { assert(false); }
+void ModelBase::draw(
+    std::vector<std::shared_ptr<ShaderProgram>> progs, glm::mat4 world2clip, glm::mat4 world2view,
+    bool require_sampler
+) {
+    assert(false);
+}
+void ModelBase::draw(
+    std::shared_ptr<ShaderProgram> prog, glm::mat4 world2clip, glm::mat4 world2view,
+    bool require_sampler
+) {
+    assert(false && "unimplemented");
+}
+
+void hmk4_models::render_scene_defr(                                      //
+    const mf::DrawableFrame                &fbo,                          //
+    mf::Rect                                cur_rect,                     //
+    std::vector<std::shared_ptr<ModelBase>> models,                       //
+    const FrameBufferObject                &gbuffer,                      //
+    const FrameBufferObject                &shadow_buffer,                //
+    mat4 shadow_mapping, mat4 world2clip, mat4 world2view, vec3 view_pos, //
+    mf::ParameterDict &arguments
+
+) {
+
+    // suppose fbo is cleared
+
+    // init
+    spdlog::debug("render_scene_defr: init");
+
+    if (!prog_shade) {
+        prog_shade = std::make_shared<ShaderProgram>("shadow_mapping.vs", "shadow_mapping.fs");
+    }
+    if (!prog_draw) {
+        prog_draw = std::make_shared<ShaderProgram>("defr_draw.vs", "defr_draw.fs");
+    }
+    if (!vao) {
+        vao           = std::make_shared<VertexArrayObject>();
+        vbo           = std::make_shared<VertexBufferObject>();
+        auto quadvert = std::vector<float>{-1, -1, 1, -1, -1, 1, 1, 1};
+        vao->bind();
+        {
+            vbo->bind();
+            vbo->SetBufferData(quadvert.size() * sizeof(float), quadvert.data());
+            vbo->SetAttribPointer(0, 2, GL_FLOAT);
+        }
+        vao->unbind();
+    }
+
+    // draw to gbuffer
+    spdlog::debug("render_scene_defr: draw to gbuffer");
+
+    gbuffer.bind();
+    gbuffer.validate();
+    const GLenum draw_targ[]{
+        GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+    glDrawBuffers(4, draw_targ);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, gbuffer.width(), gbuffer.height());
+
+    glEnable(GL_DEPTH_TEST);
+    MY_CHECK_FAIL
+
+    for (auto &model : models) {
+        model->draw_gbuffer(world2clip, world2view);
+    }
+
+    // auto prog         = std::make_shared<ShaderProgram>("defr_turbn.vs", "defr_turbn.fs");
+    // auto model        = mf::Model(MODEL_PATH_NODE);
+    // auto model2world_ = models[0]->model2world_;
+    // for (const auto &mesh : model.meshes) {
+    //     prog->use();
+    //     prog->set_value("model2clip", world2clip * model2world_);
+    //     mesh.activate_sampler(prog);
+    //     mesh.vao_->bind();
+    //     glDrawElements(GL_TRIANGLES, mesh.indices_.size(), GL_UNSIGNED_INT, 0);
+    //     MY_CHECK_FAIL
+    // }
+
+    gbuffer.unbind();
+    glDrawBuffer(GL_BACK);
+
+    // shadow mapping
+    spdlog::debug("render_scene_defr: shadow mapping");
+
+    shadow_buffer.bind();
+    glViewport(0, 0, shadow_buffer.width(), shadow_buffer.height());
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    for (auto &model : models) {
+        model->draw(prog_shade, shadow_mapping, mat4(), false);
+    }
+
+    shadow_buffer.unbind();
+    glDrawBuffer(GL_BACK);
+
+    // test
+    { //
+      // glDisable(GL_DEPTH_TEST);
+      // fbo.paste_tex(gbuffer.tex(1), cur_rect);
+      // shadow_buffer.tex_depth()->repr(1);
+      // exit(0);
+      // fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {255, 0, 0, 255});
+      // return;
+    }
+
+    // draw to frame
+    spdlog::debug("render_scene_defr: to frame");
+
+    fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 0, 255});
+    prog_draw->use();
+    vao->bind();
+
+    MY_CHECK_FAIL
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    MY_CHECK_FAIL
+
+    glDisable(GL_DEPTH_TEST);
+
+    prog_draw->set_value("view_pos", view_pos);
+    prog_draw->set_value("light_pos", arguments.get("light.x", "light.y", "light.z"));
+    prog_draw->set_value("light_color", arguments.get("light.r", "light.g", "light.b"));
+    prog_draw->set_value("shininess", (float)arguments.get<double>("shininess"));
+
+    prog_draw->set_value("light_world2clip", shadow_mapping);
+    shadow_buffer.tex_depth()->activate_sampler(prog_draw, "depth_tex", 4);
+
+    gbuffer.tex(0)->activate_sampler(prog_draw, "gbuffer.t_pos", 0);
+    gbuffer.tex(1)->activate_sampler(prog_draw, "gbuffer.t_norm", 1);
+    gbuffer.tex(2)->activate_sampler(prog_draw, "gbuffer.t_diff", 2);
+    gbuffer.tex(3)->activate_sampler(prog_draw, "gbuffer.t_spec", 3);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    MY_CHECK_FAIL
+    vao->unbind();
+
+    glDisable(GL_DEPTH_TEST);
+}
