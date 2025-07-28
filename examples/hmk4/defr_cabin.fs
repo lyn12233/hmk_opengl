@@ -21,7 +21,7 @@ uniform struct {
 } Cylinder_001;
 
 void main() {
-    g_pos  = vec4(pos, 1);
+    g_pos  = vec4(pos, 0.1);
     g_norm = vec4(norm, 1);
 
     vec2 tex_coord_ = tex_coord;
@@ -31,6 +31,6 @@ void main() {
     vec4 diff_color = texture(Cylinder_001.diffuse, tex_coord_);
     vec4 spec_color = texture(Cylinder_001.specular, tex_coord_);
 
-    g_diff = diff_color;
-    g_spec = spec_color;
+    g_diff = vec4(diff_color.xyz, 2.);
+    g_spec = vec4(spec_color.xyz, .1);
 }

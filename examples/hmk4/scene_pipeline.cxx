@@ -156,6 +156,10 @@ void hmk4_models::render_scene_defr(                                    //
     prog_draw->set_value("light_color", arguments.get("light.r", "light.g", "light.b"));
     prog_draw->set_value("shininess", (float)arguments.get<double>("shininess"));
 
+    // prog_draw->set_value("scales.ambient", (float)arguments.get<double>("scales.ambient"));
+    // prog_draw->set_value("scales.diffuse", (float)arguments.get<double>("scales.diffuse"));
+    // prog_draw->set_value("scales.specular", (float)arguments.get<double>("scales.specular"));
+
     prog_draw->set_value("light_world2clip", world2shadow);
     shadow_buffer.tex_depth()->activate_sampler(prog_draw, "shadow_tex", 0);
 

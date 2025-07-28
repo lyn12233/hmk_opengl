@@ -23,6 +23,12 @@ uniform float shininess;
 uniform sampler2D shadow_tex;
 uniform mat4      light_world2clip;
 
+// uniform struct scales_t {
+//     float ambient;
+//     float diffuse;
+//     float specular;
+// } scales;
+
 // utils
 bool should_discard(vec2 uv) { return texture(gbuffer.t_pos, uv).z == 0.; }
 
@@ -35,6 +41,10 @@ void main() {
     vec3  c_diff = texture(gbuffer.t_diff, uv).xyz;
     vec3  c_spec = texture(gbuffer.t_spec, uv).xyz;
     float vis    = texture(gbuffer.t_vis, uv).r;
+
+    float s_ambient  = texture(gbuffer.t_pos, uv).w;
+    float s_diffuse  = texture(gbuffer.t_diff, uv).w;
+    float s_specular = texture(gbuffer.t_spec, uv).w;
 
     // if there is nothing, return
     if (should_discard(uv)) {
@@ -77,7 +87,11 @@ void main() {
         visibility   = light_uv.z < shadow_depth + 1e-3 ? 1.0 : 0;
     }
 
-    vec3 color = ambient * 0.2 + visibility * (diffuse * 0.7 + specular * 0.1);
+    vec3 color;
+    // color = ambient * scales.ambient +
+    //         visibility * (diffuse * scales.diffuse + specular * scales.specular);
+    color = ambient * s_ambient + visibility * (diffuse * s_diffuse + specular * s_specular);
 
+    color     = color / (color + vec3(1));
     FragColor = vec4(color, 1.0);
 }

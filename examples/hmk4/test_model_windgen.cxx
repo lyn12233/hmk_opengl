@@ -83,6 +83,9 @@ int main() {
             {"light.b", 1.},    //
             {"shininess", 32.}, //
             {"cursor", 2.},     //
+            // {"scales.ambient", .1},  //
+            // {"scales.diffuse", 2.},  //
+            // {"scales.specular", .1}, //
         }
     );
 
