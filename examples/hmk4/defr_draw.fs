@@ -23,6 +23,9 @@ uniform float shininess;
 uniform sampler2D shadow_tex;
 uniform mat4      light_world2clip;
 
+// utils
+bool should_discard(vec2 uv) { return texture(gbuffer.t_pos, uv).z == 0.; }
+
 void main() {
 
     vec2 uv = texCoord;
@@ -34,7 +37,7 @@ void main() {
     float vis    = texture(gbuffer.t_vis, uv).r;
 
     // if there is nothing, return
-    if (pos.z == 0.) {
+    if (should_discard(uv)) {
         discard;
     }
 
@@ -77,8 +80,4 @@ void main() {
     vec3 color = ambient * 0.2 + visibility * (diffuse * 0.7 + specular * 0.1);
 
     FragColor = vec4(color, 1.0);
-
-    // different:
-    // FragColor = vec4(visibility, 0, 0, 1.0);
-    FragColor = vec4(vis, 0, 0, 1.0);
 }

@@ -72,6 +72,7 @@ void hmk4_models::render_scene_defr(                                    //
     const GLenum draw_targ[]{
         GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
     glDrawBuffers(4, draw_targ);
+    glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, gbuffer.width(), gbuffer.height());
 
@@ -111,16 +112,6 @@ void hmk4_models::render_scene_defr(                                    //
     shadow_buffer.unbind();
     glDrawBuffer(GL_BACK);
 
-    // test
-    { //
-      // glDisable(GL_DEPTH_TEST);
-      // fbo.paste_tex(gbuffer.tex(1), cur_rect);
-      // shadow_buffer.tex_depth()->repr(1);
-      // exit(0);
-      // fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {255, 0, 0, 255});
-      // return;
-    }
-
     // calc visibility
     spdlog::debug("render to vis");
 
@@ -137,6 +128,7 @@ void hmk4_models::render_scene_defr(                                    //
     glDisable(GL_DEPTH_TEST);
 
     prog_vis->set_value("world2shadow", world2shadow);
+    prog_vis->set_value("world2clip", world2clip);
     shadow_buffer.tex_depth()->activate_sampler(prog_vis, "shadow_tex", 0);
     gbuffer.tex(0)->activate_sampler(prog_vis, "gbuffer.t_pos", 1);
     gbuffer.tex(1)->activate_sampler(prog_vis, "gbuffer.t_norm", 2);
@@ -145,10 +137,6 @@ void hmk4_models::render_scene_defr(                                    //
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     vao->unbind();
     MY_CHECK_FAIL
-
-    // // // test
-    // gbuffer.tex(4)->repr();
-    // exit(0);
 
     // draw to frame
     spdlog::debug("render_scene_defr: to frame");

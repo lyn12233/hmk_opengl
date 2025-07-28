@@ -101,7 +101,7 @@ class MyModel : public WorldViewBase {
         float dist = glm::length(light_pos);
         auto  light_world2clip =
             glm::perspective<float>(
-                2 * glm::atan(100.f, dist), 1.f, std::max(dist - 100.f, 1e-2f), dist + 100.f
+                2 * glm::atan(50.f, dist), 1.f, std::max(dist - 50.f, 1e-2f), dist + 50.f
             ) *
             glm::lookAt(light_pos, vec3(0), vec3(0, 1, 0));
 
@@ -214,7 +214,7 @@ int main() {
             {"light.g", 1.},    //
             {"light.b", 1.},    //
             {"shininess", 32.}, //
-            {"cursor", 1.},     //
+            {"cursor", .5},     //
         }
     );
 
