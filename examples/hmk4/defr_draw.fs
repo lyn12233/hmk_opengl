@@ -11,6 +11,7 @@ uniform struct {
     sampler2D t_norm;
     sampler2D t_diff;
     sampler2D t_spec;
+    sampler2D t_vis;
 } gbuffer;
 
 // light attr
@@ -19,19 +20,18 @@ uniform vec3  light_color;
 uniform float shininess;
 
 // shadow mapping attr
-uniform sampler2D depth_tex;
+uniform sampler2D shadow_tex;
 uniform mat4      light_world2clip;
-
-uniform float cursor;
 
 void main() {
 
     vec2 uv = texCoord;
 
-    vec3 pos    = texture(gbuffer.t_pos, uv).xyz;
-    vec3 norm   = texture(gbuffer.t_norm, uv).xyz;
-    vec3 c_diff = texture(gbuffer.t_diff, uv).xyz;
-    vec3 c_spec = texture(gbuffer.t_spec, uv).xyz;
+    vec3  pos    = texture(gbuffer.t_pos, uv).xyz;
+    vec3  norm   = texture(gbuffer.t_norm, uv).xyz;
+    vec3  c_diff = texture(gbuffer.t_diff, uv).xyz;
+    vec3  c_spec = texture(gbuffer.t_spec, uv).xyz;
+    float vis    = texture(gbuffer.t_vis, uv).r;
 
     // if there is nothing, return
     if (pos.z == 0.) {
@@ -39,7 +39,7 @@ void main() {
     }
 
     // Lighting vectors
-    vec3 N = norm;
+    vec3 N = normalize(norm);
     vec3 L = normalize(light_pos - pos);
     vec3 V = normalize(view_pos - pos);
     vec3 H = normalize(L + V);
@@ -53,7 +53,7 @@ void main() {
     vec3  specular = c_spec * light_color * pow(NdotH, shininess);
 
     // Simple ambient
-    vec3 ambient = 0.1 * c_diff;
+    vec3 ambient = c_diff;
 
     // shadow mapping
     vec4 light_clip;
@@ -70,11 +70,15 @@ void main() {
     if (light_uv.x < 0.0 || light_uv.x > 1.0 || light_uv.y < 0.0 || light_uv.y > 1.0) {
         visibility = 0.;
     } else {
-        vec3 tex     = texture(depth_tex, light_uv.xy).rgb;
-        shadow_depth = max(max(tex.r, tex.g), tex.b);
-        visibility   = light_uv.z < shadow_depth + 3e-7 ? 1.0 : 0;
+        shadow_depth = texture(shadow_tex, light_uv.xy).r;
+        visibility   = light_uv.z < shadow_depth + 1e-3 ? 1.0 : 0;
     }
 
-    vec3 color = ambient + visibility * (diffuse + specular);
-    FragColor  = vec4(color, 1.0);
+    vec3 color = ambient * 0.2 + visibility * (diffuse * 0.7 + specular * 0.1);
+
+    FragColor = vec4(color, 1.0);
+
+    // different:
+    // FragColor = vec4(visibility, 0, 0, 1.0);
+    FragColor = vec4(vis, 0, 0, 1.0);
 }

@@ -40,6 +40,7 @@ namespace hmk4_models {
 
     static std::shared_ptr<ShaderProgram>      prog_shade;
     static std::shared_ptr<ShaderProgram>      prog_draw;
+    static std::shared_ptr<ShaderProgram>      prog_vis;
     static std::shared_ptr<VertexArrayObject>  vao;
     static std::shared_ptr<VertexBufferObject> vbo;
 } // namespace hmk4_models

@@ -15,7 +15,7 @@ uniform mat4 model2world;
 
 void main() {
     pos         = (model2world * vec4(aPos, 1)).xyz;
-    norm        = (model2world * vec4(aNorm, 1)).xyz;
+    norm        = (model2world * vec4(aNorm, 0)).xyz;
     color       = aColor;
     tex_coord   = aTex;
     gl_Position = model2clip * vec4(aPos, 1);

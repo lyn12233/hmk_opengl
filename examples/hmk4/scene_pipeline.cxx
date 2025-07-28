@@ -26,13 +26,13 @@ void ModelBase::draw(
     assert(false && "unimplemented");
 }
 
-void hmk4_models::render_scene_defr(                                      //
-    const mf::DrawableFrame                &fbo,                          //
-    mf::Rect                                cur_rect,                     //
-    std::vector<std::shared_ptr<ModelBase>> models,                       //
-    const FrameBufferObject                &gbuffer,                      //
-    const FrameBufferObject                &shadow_buffer,                //
-    mat4 shadow_mapping, mat4 world2clip, mat4 world2view, vec3 view_pos, //
+void hmk4_models::render_scene_defr(                                    //
+    const mf::DrawableFrame                &fbo,                        //
+    mf::Rect                                cur_rect,                   //
+    std::vector<std::shared_ptr<ModelBase>> models,                     //
+    const FrameBufferObject                &gbuffer,                    //
+    const FrameBufferObject                &shadow_buffer,              //
+    mat4 world2shadow, mat4 world2clip, mat4 world2view, vec3 view_pos, //
     mf::ParameterDict &arguments
 
 ) {
@@ -47,6 +47,9 @@ void hmk4_models::render_scene_defr(                                      //
     }
     if (!prog_draw) {
         prog_draw = std::make_shared<ShaderProgram>("defr_draw.vs", "defr_draw.fs");
+    }
+    if (!prog_vis) {
+        prog_vis = std::make_shared<ShaderProgram>("defr_vis.vs", "defr_vis.fs");
     }
     if (!vao) {
         vao           = std::make_shared<VertexArrayObject>();
@@ -91,8 +94,8 @@ void hmk4_models::render_scene_defr(                                      //
     //     MY_CHECK_FAIL
     // }
 
-    gbuffer.unbind();
-    glDrawBuffer(GL_BACK);
+    // gbuffer.unbind();
+    // glDrawBuffer(GL_BACK);
 
     // shadow mapping
     spdlog::debug("render_scene_defr: shadow mapping");
@@ -102,7 +105,7 @@ void hmk4_models::render_scene_defr(                                      //
     glClear(GL_DEPTH_BUFFER_BIT);
 
     for (auto &model : models) {
-        model->draw(prog_shade, shadow_mapping, mat4(), false);
+        model->draw(prog_shade, world2shadow, mat4(), false);
     }
 
     shadow_buffer.unbind();
@@ -117,6 +120,35 @@ void hmk4_models::render_scene_defr(                                      //
       // fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {255, 0, 0, 255});
       // return;
     }
+
+    // calc visibility
+    spdlog::debug("render to vis");
+
+    // in: shadowbuffer.depth, gbuffer.pos, world2shadow; out: gbuffer.t_vis(tex(4))
+    gbuffer.bind();
+    prog_vis->use();
+    vao->bind();
+
+    glDrawBuffer(GL_COLOR_ATTACHMENT4);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, gbuffer.width(), gbuffer.height());
+    MY_CHECK_FAIL
+
+    glDisable(GL_DEPTH_TEST);
+
+    prog_vis->set_value("world2shadow", world2shadow);
+    shadow_buffer.tex_depth()->activate_sampler(prog_vis, "shadow_tex", 0);
+    gbuffer.tex(0)->activate_sampler(prog_vis, "gbuffer.t_pos", 1);
+    gbuffer.tex(1)->activate_sampler(prog_vis, "gbuffer.t_norm", 2);
+    prog_vis->set_value("cursor", (float)arguments.get<double>("cursor"));
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    vao->unbind();
+    MY_CHECK_FAIL
+
+    // // // test
+    // gbuffer.tex(4)->repr();
+    // exit(0);
 
     // draw to frame
     spdlog::debug("render_scene_defr: to frame");
@@ -136,13 +168,14 @@ void hmk4_models::render_scene_defr(                                      //
     prog_draw->set_value("light_color", arguments.get("light.r", "light.g", "light.b"));
     prog_draw->set_value("shininess", (float)arguments.get<double>("shininess"));
 
-    prog_draw->set_value("light_world2clip", shadow_mapping);
-    shadow_buffer.tex_depth()->activate_sampler(prog_draw, "depth_tex", 4);
+    prog_draw->set_value("light_world2clip", world2shadow);
+    shadow_buffer.tex_depth()->activate_sampler(prog_draw, "shadow_tex", 0);
 
-    gbuffer.tex(0)->activate_sampler(prog_draw, "gbuffer.t_pos", 0);
-    gbuffer.tex(1)->activate_sampler(prog_draw, "gbuffer.t_norm", 1);
-    gbuffer.tex(2)->activate_sampler(prog_draw, "gbuffer.t_diff", 2);
-    gbuffer.tex(3)->activate_sampler(prog_draw, "gbuffer.t_spec", 3);
+    gbuffer.tex(0)->activate_sampler(prog_draw, "gbuffer.t_pos", 1);
+    gbuffer.tex(1)->activate_sampler(prog_draw, "gbuffer.t_norm", 2);
+    gbuffer.tex(2)->activate_sampler(prog_draw, "gbuffer.t_diff", 3);
+    gbuffer.tex(3)->activate_sampler(prog_draw, "gbuffer.t_spec", 4);
+    gbuffer.tex(4)->activate_sampler(prog_draw, "gbuffer.t_vis", 5);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     MY_CHECK_FAIL

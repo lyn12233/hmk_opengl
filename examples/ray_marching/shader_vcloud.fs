@@ -32,16 +32,20 @@ uniform float sigma_a;
 uniform float sigma_s;
 uniform vec3  light_dir;
 uniform vec4  phase_parm; // g1,g2,offs,scale
+uniform float light_e;
 
 vec3 up = vec3(0, 1, 0);
 #define SMALL_VALUE (1e-6)
 #define MED_VALUE (1e-4)
+
+uniform float cursor;
 
 float HenyeyGreenstein(float cos_theta, float g) {
     float gg = g * g;
     return (1 - gg) / pow(1 + gg - 2 * g * cos_theta, 1.5) / (4. * radians(180));
 }
 float phase_func(float cos_theta) {
+    // return 1 / 4 * radians(180);
     float hg = HenyeyGreenstein(cos_theta, phase_parm.x) * 0.5 +
                HenyeyGreenstein(cos_theta, phase_parm.y) * 0.5;
     return phase_parm.z + hg * phase_parm.w;
@@ -70,23 +74,24 @@ float cloud_sampler(vec3 sample_pos) {
         // density = 0.8 * density_max;
     }
 
-    return density;
+    return max(density, 0);
 }
 
 float query_transmittance(vec3 ro, vec3 rd) {
     float transmittance = 1.;
     float t_step        = max_length / nb_iter2;
+    float dist          = 0.;
 
-    for (int i = 0; i < max_length; i++) {
+    for (int i = 0; i < nb_iter2; i++) {
         vec3 sample_pos = ro + rd * (t_step * i);
         if (!within_aabb(sample_pos)) break;
 
         float density = cloud_sampler(ro + rd * (t_step * i));
 
-        transmittance *= exp(-density * (sigma_a + sigma_s) * t_step);
+        dist += density * t_step;
         if (transmittance < 1e-4) break;
     }
-    return transmittance;
+    return exp(-(sigma_a + sigma_s) * dist) * (1 - exp(-4 * (sigma_a + sigma_s) * dist));
 }
 
 void main() {
@@ -110,9 +115,10 @@ void main() {
     vec3 tmin = min(t0, t1);
     vec3 tmax = max(t0, t1);
 
-    float t_enter = max(max(tmin.x, tmin.y), tmin.z) + 1e-4;
-    float t_exit  = min(min(tmax.x, tmax.y), tmax.z) - 1e-4;
-    float t_step  = (t_exit - t_enter) / (nb_iter - 1);
+    float t_enter  = max(max(tmin.x, tmin.y), tmin.z) + 1e-4;
+    float t_exit   = min(min(tmax.x, tmax.y), tmax.z) - 1e-4;
+    float t_step   = (t_exit - t_enter) / (nb_iter - 1);
+    float step_min = min(t_step, 0.5);
 
     t_enter = max(t_enter, 0);
 
@@ -127,26 +133,37 @@ void main() {
     float sigma_t       = sigma_a + sigma_s;
     float transmittance = 1.;
 
+    vec3 sample_pos = ro + rd * t_enter;
     for (int it = 0; it < nb_iter; it++) {
-        vec3 sample_pos = ro + rd * (t_enter + t_step * it);
 
         float density = cloud_sampler(sample_pos);
-        if (density < 0) continue;
+        if (density <= 1e-3) {
+            sample_pos += rd * t_step * 2;
+            continue;
+        }
 
         float luminance = query_transmittance(sample_pos, -light_dir);
 
         // L_s = t_sun*(sigma)*P(cos)
-        float light_s = luminance * density * (sigma_s / sigma_t) * phase_func(dot(-rd, light_dir));
+        float light_s = luminance * (sigma_s / sigma_t) * phase_func(dot(-rd, light_dir));
+        light_s += sigma_a / sigma_t * light_e;
 
         // dL_o = T L_s dt
-        radiance += transmittance * light_s * t_step;
+        radiance += transmittance * light_s * t_step * density;
 
         float T = exp(-density * t_step * sigma_t);
 
         transmittance *= T;
+        if (transmittance < 1e-4) break;
+
+        sample_pos += rd * (density < 5e-3 ? t_step : step_min);
     }
     // color += transmittance * bkgd_color;
-    color = min(radiance, 1) * light_color + transmittance * bkgd_color;
+    color = radiance * light_color * cursor + transmittance * bkgd_color * cursor;
+
+    color = color / (color + vec3(1));
+    color = pow(color, vec3(1. / 2.2));
+    color = mix(color, bkgd_color, transmittance);
 
     // correction: cloud+bkgd+sun_intensity+gamma
 

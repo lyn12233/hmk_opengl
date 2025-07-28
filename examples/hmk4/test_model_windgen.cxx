@@ -14,21 +14,27 @@ using namespace glwrapper;
 using namespace hmk4_models;
 
 class MyWorld : public WorldViewBase {
-    constexpr static int shadow_width = 1000, shadow_height = 1000;
+    constexpr static int shadow_width = 4000, shadow_height = 4000;
 
     FrameBufferObject              gbuffer;
     FrameBufferObject              shadow_buffer;
     std::shared_ptr<ParameterDict> arguments_;
 
-    std::shared_ptr<Windgen> model;
+    std::vector<std::shared_ptr<ModelBase>> models;
 
     public:
     MyWorld(std::shared_ptr<ParameterDict> arguments) :
-        gbuffer(800, 600, 4),                          //
+        gbuffer(800, 600, 5),                          //
         shadow_buffer(shadow_width, shadow_height, 0), //
         arguments_(arguments) {
 
-        model = std::make_shared<Windgen>();
+        for (auto [i, j, k] : std::vector<std::tuple<glm::vec3, float, float>>{
+                 //  {{0, 0, 0}, 0., 1.}, //
+                 {{-5, 0, 0}, 1.57, 0.5},
+             }) {
+            auto model = std::make_shared<Windgen>(i, j, k);
+            models.push_back(model);
+        }
 
         camera                    = mf::WorldCamera(vec3(0, 0, 0), vec3(0, 0, 20));
         camera.spin_at_viewpoint_ = false;
@@ -44,7 +50,7 @@ class MyWorld : public WorldViewBase {
             glm::perspective<float>(
                 2 * glm::atan(100.f, dist), 1.f, std::max(dist - 100.f, 1e-2f), dist + 100.f
             ) *
-            glm::lookAt(light_pos, vec3(0), vec3(0, 1, 0));
+            glm::lookAt(light_pos, vec3(0), vec3(0, 0, 1));
         ;
 
         fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 255, 255});
@@ -52,7 +58,7 @@ class MyWorld : public WorldViewBase {
 
         hmk4_models::render_scene_defr(
             fbo, cur_rect,                                                               //
-            {model}, gbuffer, shadow_buffer,                                             //
+            models, gbuffer, shadow_buffer,                                              //
             shadow_mapping, camera.world2clip(), camera.world2view(), camera.viewpoint_, //
             *arguments_
         );
@@ -70,12 +76,13 @@ int main() {
     auto arguments = std::make_shared<ParameterDict>( //
         ParameterDict_t{
             {"light.x", .1},    //
-            {"light.y", 44.},   //
+            {"light.y", 440.},  //
             {"light.z", 27.},   //
             {"light.r", 1.},    //
             {"light.g", 1.},    //
             {"light.b", 1.},    //
             {"shininess", 32.}, //
+            {"cursor", 2.},     //
         }
     );
 

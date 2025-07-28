@@ -36,8 +36,9 @@ class DrawACloud : public mf::WorldViewBase {
         prog = std::make_shared<ShaderProgram>("shader_vcloud.vs", "shader_vcloud.fs");
 
         for (auto &tex : perlin_noise_tex) {
-            tex =
-                std::make_shared<TextureObject>("", 0, TextureParameter(), GL_R32F, GL_TEXTURE_3D);
+            tex = std::make_shared<TextureObject>(
+                "", 0, TextureParameter("smooth"), GL_R32F, GL_TEXTURE_3D
+            );
         }
 
         update_cloud_data();
@@ -129,7 +130,7 @@ class DrawACloud : public mf::WorldViewBase {
 
         prog->set_value("nb_iter", (int)get<double>("nb_iter"));
         prog->set_value("nb_iter2", (int)get<double>("nb_iter2"));
-        prog->set_value("max_length", (float)(4. * std::max({lx, ly, lz})));
+        prog->set_value("max_length", (float)get<double>("max_length"));
 
         prog->set_value("bkgd_color", glm::vec3(0.53f, 0.81f, 0.92f));
         prog->set_value("light_color", get("light.r", "light.g", "light.b"));
@@ -140,6 +141,8 @@ class DrawACloud : public mf::WorldViewBase {
             "phase_parm",
             get("phase_parm.g1", "phase_parm.g2", "phase_parm.base", "phase_parm.scale")
         );
+        prog->set_value("light_e", (float)get<double>("light_e"));
+        prog->set_value("cursor", (float)get<double>("cursor"));
 
         MY_CHECK_FAIL
 
@@ -174,45 +177,48 @@ class DrawACloud : public mf::WorldViewBase {
 };
 
 int main() {
-    auto window = std::make_shared<mf::Window>((int)(1080 * 1.5), 720);
+    auto window = std::make_shared<mf::Window>((int)(1080 * 2), 720);
     auto sizer  = std::make_shared<mf::BoxSizer>(0, 0, 0, mf::SIZER_HORIZONTAL);
     spdlog::debug("here");
     auto arguments = std::make_shared<mf::ParameterDict>( //
         mf::ParameterDict_t{
-            {"scale1", 32.},           //
-            {"scale2", 16.},           //
-            {"scale3", 8.},            //
-            {"scale4", 4.},            //
-            {"amp1", 1.},              //
-            {"amp2", 1. / 2},          //
-            {"amp3", 1. / 4},          //
-            {"amp4", 1. / 8},          //
-            {"light.x", 0.},           //
-            {"light.y", -1.},          //
-            {"light.z", 0.3},          //
-            {"light.r", 1.00},         //
-            {"light.g", 0.98},         //
-            {"light.b", 0.92},         //
-            {"sigma_a", 0.002},        //
-            {"sigma_s", 0.098},        //
-            {"phase_parm.g1", .83},    //
-            {"phase_parm.g2", .3},     //
-            {"phase_parm.base", .8},   //
-            {"phase_parm.scale", .15}, //
-            {"nb_iter", 64.},          //
-            {"nb_iter2", 10.},         //
-            {"dens_offs", -.3},        //
-            {"dens_max", .1},          //
-            {"aabb.lx", 100.},         //
-            {"aabb.ly", 10.},          //
-            {"aabb.lz", 100.},         //
+            {"scale1", 32.},          //
+            {"scale2", 16.},          //
+            {"scale3", 8.},           //
+            {"scale4", 4.},           //
+            {"amp1", 1.},             //
+            {"amp2", 1. / 2},         //
+            {"amp3", 1. / 4},         //
+            {"amp4", 1. / 8},         //
+            {"light.x", 0.},          //
+            {"light.y", -1.},         //
+            {"light.z", 0.3},         //
+            {"light.r", 1.00},        //
+            {"light.g", 0.98},        //
+            {"light.b", 0.92},        //
+            {"sigma_a", 0.03},        //
+            {"sigma_s", 1.3},         //
+            {"phase_parm.g1", .83},   //
+            {"phase_parm.g2", .3},    //
+            {"phase_parm.base", .7},  //
+            {"phase_parm.scale", 5.}, //
+            {"nb_iter", 100.},        //
+            {"nb_iter2", 15.},        //
+            {"dens_offs", -.3},       //
+            {"dens_max", .08},        //
+            {"aabb.lx", 100.},        //
+            {"aabb.ly", 10.},         //
+            {"aabb.lz", 100.},        //
+            {"light_e", 6.},          //
+            {"cursor", 8.},           //
+            {"max_length", 20.},      //
         }
     );
 
     auto draw = std::make_shared<DrawACloud>(arguments);
 
     sizer->add(draw, 1);
-    sizer->add(arguments, 0.7);
+    sizer->add(arguments, 1);
     window->set_root(sizer);
     window->set_focus(draw);
 
