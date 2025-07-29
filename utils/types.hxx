@@ -22,6 +22,8 @@ namespace terrain {
         public:
         Array3D<T>(int dimX = 0, int dimY = 0, int dimZ = 0);
         void operator=(vector<T>);
+        void operator+=(const Array3D<T> &);
+        void operator*=(const Array3D<T> &);
 
         const T &operator[](array<int, 3> offs) const;
         T       &operator[](array<int, 3> offs);
@@ -92,6 +94,18 @@ terrain::Array3D<T>::Array3D(int dimX, int dimY, int dimZ) :
 template<typename T> void terrain::Array3D<T>::operator=(vector<T> vec) {
     assert(vec.size() == dimX_ * dimY_ * dimZ_ && "Array3D<T>::operator=: invalid size");
     data_ = vec;
+}
+template<typename T> void terrain::Array3D<T>::operator+=(const Array3D<T> &o) {
+    assert(dimX_ == o.dimX_ && dimY_ == o.dimY_ && dimZ_ == o.dimZ_);
+    for (int i = 0; i < data_.size(); i++) {
+        data_[i] += o.data_[i];
+    }
+}
+template<typename T> void terrain::Array3D<T>::operator*=(const Array3D<T> &o) {
+    assert(dimX_ == o.dimX_ && dimY_ == o.dimY_ && dimZ_ == o.dimZ_);
+    for (int i = 0; i < data_.size(); i++) {
+        data_[i] *= o.data_[i];
+    }
 }
 
 template<typename T> const T &terrain::Array3D<T>::operator[](array<int, 3> offs) const {

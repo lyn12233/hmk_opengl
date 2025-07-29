@@ -2,8 +2,8 @@
 in vec2 tex_coord;
 in vec3 pos;
 
-uniform vec3 c_diff;
-uniform vec3 c_spec; // unused
+uniform vec3 c1;
+uniform vec3 c2; // unused
 
 uniform vec3  light_color;
 uniform vec3  light_pos;
@@ -16,13 +16,27 @@ uniform float     hscale;
 
 uniform float pix_per_m;
 
+uniform float s_ambient;
+uniform float s_diffuse;
+uniform float s_specular;
+
 out vec4 FragColor;
 
 uniform mat4 world2tex;
 
 const vec3 BaseN = vec3(0, 1, 0);
 
-float sample_height(vec2 uv) { return texture(tex1, uv).r * hscale; }
+float sgm(float t) { return (exp(t) - exp(-t)) / (exp(t) + exp(-t)); }
+
+float sample_height(vec2 uv) {
+    vec2  uv1 = vec2(uv.x, 1 - uv.y);
+    vec2  uv2 = vec2(1 - uv.x, 1 - uv.y);
+    float w1  = abs(uv.x * 2 - 1);
+    float w2  = abs(uv.y * 2 - 1);
+    float h   = (texture(tex1, uv).r + texture(tex1, uv1).r * w1 + texture(tex1, uv2).r * w2) /
+              (1. + w1 + w2);
+    return sgm(h * hscale) * hscale;
+}
 
 vec2 remap_coord(vec2 coord, const vec3 projV, const vec3 pos) {
     float last_h = 0.;
@@ -41,12 +55,13 @@ vec2 remap_coord(vec2 coord, const vec3 projV, const vec3 pos) {
 void main() {
 
     // prallax mapping
-    float h = sample_height(tex_coord);
 
     vec3 V     = normalize(view_pos - pos);
     vec3 projV = V - dot(BaseN, V) * BaseN;
 
-    vec2 tex_coord2 = remap_coord(tex_coord, projV, pos);
+    vec2  tex_coord2 = remap_coord(tex_coord, projV, pos);
+    float h          = sample_height(tex_coord2);
+    vec3  c          = mix(c1, c2, exp(-1 - h));
 
     // calc normal
     float tex_dist = 1. / 1000. / pix_per_m;
@@ -64,14 +79,13 @@ void main() {
 
     // Diffuse term (Lambert)
     float NdotL   = max(dot(N, L), 0.0);
-    vec3  diffuse = c_diff * light_color * NdotL * 0.3;
+    vec3  diffuse = c * light_color * NdotL;
 
     // Specular term (Blinn‑Phong)
     float NdotH    = max(dot(N, H), 0.0);
-    vec3  specular = c_spec * light_color * pow(NdotH, shininess) * 0.3;
+    vec3  specular = c * light_color * pow(NdotH, shininess);
 
-    // Simple ambient
-    vec3 ambient = 0.1 * c_diff;
-
-    FragColor = vec4(ambient + diffuse + specular, 1);
+    vec3 color = c * s_ambient + diffuse * s_diffuse + specular * s_specular;
+    color      = color / (color + vec3(1));
+    FragColor  = vec4(color, 1);
 }

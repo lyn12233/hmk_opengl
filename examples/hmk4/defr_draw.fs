@@ -94,4 +94,10 @@ void main() {
 
     color     = color / (color + vec3(1));
     FragColor = vec4(color, 1.0);
+
+    // test
+    // FragColor = vec4(s_ambient, s_diffuse, s_specular, 1);
+    // FragColor = vec4(vec3(visibility), 1);//some not whithin shadow map
+    // FragColor = vec4(abs(pos), 1);
+    // FragColor = vec4(normalize(norm - vec3(0, 1, 0)), 1);
 }

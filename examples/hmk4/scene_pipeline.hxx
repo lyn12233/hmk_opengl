@@ -38,6 +38,7 @@ namespace hmk4_models {
         mf::ParameterDict &arguments
     );
 
+    // prog_shade input: layout(0) pos, uniform world2clip
     static std::shared_ptr<ShaderProgram>      prog_shade;
     static std::shared_ptr<ShaderProgram>      prog_draw;
     static std::shared_ptr<ShaderProgram>      prog_vis;

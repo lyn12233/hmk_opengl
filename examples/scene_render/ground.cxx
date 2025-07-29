@@ -48,7 +48,7 @@ class MyGround : public WorldViewBase {
         camera.spin_at_viewpoint_ = false;
 
         prog = std::make_shared<ShaderProgram>("ground.vs", "ground.fs");
-        tex1 = std::make_shared<TextureObject>("", 0, TextureParameter(), GL_R32F);
+        tex1 = std::make_shared<TextureObject>("", 0, TextureParameter("smooth"), GL_R32F);
 
         auto vert = std::vector<float>{-1, -1, -plain_width / 2, -plain_height / 2, //
                                        1,  -1, plain_width / 2,  -plain_height / 2, //
@@ -66,6 +66,11 @@ class MyGround : public WorldViewBase {
                 plain_height * pix_per_m, plain_width * pix_per_m, 1,
                 get<double>("scale") * pix_per_m, 1145
             );
+            auto tex_data2 = terrain::gen_perlin_tex(
+                plain_height * pix_per_m, plain_width * pix_per_m, 1,
+                get<double>("scale") / 4. * pix_per_m, 114
+            );
+            tex_data += tex_data2;
             tex1->from_data(
                 tex_data.data(), plain_width * pix_per_m, plain_height * pix_per_m, (GLenum)GL_FLOAT
             );
@@ -89,8 +94,8 @@ class MyGround : public WorldViewBase {
         prog->set_value("world2clip", camera.world2clip());
         prog->set_value("world2tex", world2tex);
 
-        prog->set_value("c_diff", get("c1.r", "c1.g", "c1.b"));
-        prog->set_value("c_spec", get("c2.r", "c2.g", "c2.b"));
+        prog->set_value("c1", get("c1.r", "c1.g", "c1.b"));
+        prog->set_value("c2", get("c2.r", "c2.g", "c2.b"));
 
         prog->set_value("light_color", get("light.r", "light.g", "light.b"));
         prog->set_value("light_pos", get("light.x", "light.y", "light.z"));
@@ -103,6 +108,10 @@ class MyGround : public WorldViewBase {
 
         prog->set_value("pix_per_m", (float)pix_per_m);
 
+        prog->set_value("s_ambient", (float)get<double>("s_ambient"));
+        prog->set_value("s_diffuse", (float)get<double>("s_diffuse"));
+        prog->set_value("s_specular", (float)get<double>("s_specular"));
+
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         return false;
@@ -113,21 +122,24 @@ int main() {
     auto window    = std::make_shared<mf::Window>((int)(1080 * 1.5), 720);
     auto sizer     = std::make_shared<mf::BoxSizer>(0, 0, 0, mf::SIZER_HORIZONTAL);
     auto arguments = std::make_shared<mf::ParameterDict>(mf::ParameterDict_t{
-        {"c1.r", 1.},       //
-        {"c1.g", 1.},       //
-        {"c1.b", 1.},       //
-        {"c2.r", 1.},       //
-        {"c2.g", 1.},       //
-        {"c2.b", 1.},       //
-        {"light.r", 1.},    //
-        {"light.g", 1.},    //
-        {"light.b", 1.},    //
-        {"light.x", 1.},    //
-        {"light.y", 1e5},   //
-        {"light.z", 1.},    //
-        {"shininess", 32.}, //
-        {"scale", 5.},      //
-        {"hscale", 1.}      //
+        {"c1.r", 138. / 255.}, //
+        {"c1.g", 92. / 255.},  //
+        {"c1.b", 58. / 255.},  //
+        {"c2.r", .81},         //
+        {"c2.g", .54},         //
+        {"c2.b", .33},         //
+        {"light.r", 1.},       //
+        {"light.g", 1.},       //
+        {"light.b", 1.},       //
+        {"light.x", 1.},       //
+        {"light.y", 1e5},      //
+        {"light.z", 1.},       //
+        {"shininess", 32.},    //
+        {"scale", 5.},         //
+        {"hscale", 1.2},       //
+        {"s_ambient", .01},    //
+        {"s_diffuse", 2.},     //
+        {"s_specular", .01},   //
     });
 
     auto draw = std::make_shared<MyGround>(arguments);

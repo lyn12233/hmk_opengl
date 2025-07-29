@@ -40,7 +40,7 @@ void hmk4_models::render_scene_defr(                                    //
     // suppose fbo is cleared
 
     // init
-    spdlog::debug("render_scene_defr: init");
+    spdlog::trace("render_scene_defr: init");
 
     if (!prog_shade) {
         prog_shade = std::make_shared<ShaderProgram>("shadow_mapping.vs", "shadow_mapping.fs");
@@ -65,10 +65,11 @@ void hmk4_models::render_scene_defr(                                    //
     }
 
     // draw to gbuffer
-    spdlog::debug("render_scene_defr: draw to gbuffer");
+    spdlog::trace("render_scene_defr: draw to gbuffer");
 
     gbuffer.bind();
     gbuffer.validate();
+
     const GLenum draw_targ[]{
         GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
     glDrawBuffers(4, draw_targ);
@@ -82,18 +83,6 @@ void hmk4_models::render_scene_defr(                                    //
     for (auto &model : models) {
         model->draw_gbuffer(world2clip, world2view);
     }
-
-    // auto prog         = std::make_shared<ShaderProgram>("defr_turbn.vs", "defr_turbn.fs");
-    // auto model        = mf::Model(MODEL_PATH_NODE);
-    // auto model2world_ = models[0]->model2world_;
-    // for (const auto &mesh : model.meshes) {
-    //     prog->use();
-    //     prog->set_value("model2clip", world2clip * model2world_);
-    //     mesh.activate_sampler(prog);
-    //     mesh.vao_->bind();
-    //     glDrawElements(GL_TRIANGLES, mesh.indices_.size(), GL_UNSIGNED_INT, 0);
-    //     MY_CHECK_FAIL
-    // }
 
     // gbuffer.unbind();
     // glDrawBuffer(GL_BACK);
@@ -113,7 +102,7 @@ void hmk4_models::render_scene_defr(                                    //
     glDrawBuffer(GL_BACK);
 
     // calc visibility
-    spdlog::debug("render to vis");
+    spdlog::trace("render to vis");
 
     // in: shadowbuffer.depth, gbuffer.pos, world2shadow; out: gbuffer.t_vis(tex(4))
     gbuffer.bind();
@@ -139,7 +128,7 @@ void hmk4_models::render_scene_defr(                                    //
     MY_CHECK_FAIL
 
     // draw to frame
-    spdlog::debug("render_scene_defr: to frame");
+    spdlog::trace("render_scene_defr: to frame");
 
     fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 0, 255});
     prog_draw->use();
@@ -155,10 +144,6 @@ void hmk4_models::render_scene_defr(                                    //
     prog_draw->set_value("light_pos", arguments.get("light.x", "light.y", "light.z"));
     prog_draw->set_value("light_color", arguments.get("light.r", "light.g", "light.b"));
     prog_draw->set_value("shininess", (float)arguments.get<double>("shininess"));
-
-    // prog_draw->set_value("scales.ambient", (float)arguments.get<double>("scales.ambient"));
-    // prog_draw->set_value("scales.diffuse", (float)arguments.get<double>("scales.diffuse"));
-    // prog_draw->set_value("scales.specular", (float)arguments.get<double>("scales.specular"));
 
     prog_draw->set_value("light_world2clip", world2shadow);
     shadow_buffer.tex_depth()->activate_sampler(prog_draw, "shadow_tex", 0);

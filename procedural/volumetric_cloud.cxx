@@ -142,11 +142,13 @@ Array3D<float> terrain::gen_light_cache(
 
 Array3D<float> terrain::gen_perlin_tex(int dimX, int dimY, int dimZ, float noise_scale, int seed) {
     Array3D<float> array{dimX, dimY, dimZ};
-    float          offset = stb_perlin_noise3_seed(.5, .5, .5, 0, 0, 0, seed + 5) * 0.1 + 0.5;
 
     for (int i = 0; i < dimX; i++) {
         for (int j = 0; j < dimY; j++) {
             for (int k = 0; k < dimZ; k++) {
+                float offset =
+                    stb_perlin_noise3_seed(i / 10., j / 10., k / 10., 0, 0, 0, seed + 5) * 0.5 +
+                    0.5;
 
                 array[{i, j, k}] = stb_perlin_noise3_seed(
                     (i + offset) / noise_scale, (j + offset) / noise_scale,
