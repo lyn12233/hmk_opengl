@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 add_library(minimal_framework
+    button.cxx
     drawable_frame.cxx
     sizer.cxx
     textedit.cxx

@@ -74,7 +74,7 @@ namespace mf {
     class TextCtrl : public WidgetBase {
         public:
         TextCtrl(
-            std::string text = "", GLuint w = DEFAULT_TC_WIDTH, GLuint h = 20,
+            std::string text = "", GLuint w = DEFAULT_TC_WIDTH, GLuint h = DEFAULT_TC_HEIGHT,
             GLuint    fontsize = DEFAULT_TC_FONTSIZE,
             mf::FLAGS style    = static_cast<FLAGS>(mf::ALIGN_CENTER | mf::EXPAND)
         );
@@ -127,7 +127,7 @@ namespace mf {
     class StaticText : public TextCtrl {
         public:
         StaticText(
-            std::string text = "", GLuint w = DEFAULT_TC_WIDTH, GLuint h = 20,
+            std::string text = "", GLuint w = DEFAULT_TC_WIDTH, GLuint h = DEFAULT_TC_HEIGHT,
             GLuint    fontsize = DEFAULT_TC_FONTSIZE,
             mf::FLAGS style    = static_cast<FLAGS>(mf::ALIGN_CENTER | mf::EXPAND)
         );

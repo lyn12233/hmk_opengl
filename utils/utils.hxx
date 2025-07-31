@@ -57,6 +57,10 @@ namespace mf {
         // focus
         EVT_FOCUS     = 10,
         EVT_FOCUS_OUT = 11,
+
+        // button
+        EVT_BUTTON    = 12,
+        EVT_BUTTON_UP = 13,
     };
     union EVENT_PARM {
         vec2   vec2;

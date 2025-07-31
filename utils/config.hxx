@@ -23,6 +23,7 @@
 
 // for TextCtrl
 #define DEFAULT_TC_WIDTH 100
+#define DEFAULT_TC_HEIGHT 20
 #define DEFAULT_TC_FONTSIZE 24
 #define DEFAULT_TC_BKGD                                                                            \
     { 0, 0, 0, 1 }
@@ -32,6 +33,12 @@
     { 1, 1, 1, 1 }
 #define DEFAULT_TC_FRGD_INV                                                                        \
     { 0, 0, 0, 1 }
+
+// button
+#define DEFAULT_BTN_BKGD DEFAULT_TC_BKGD_INV
+#define DEFAULT_BTN_FRGD DEFAULT_TC_FRGD_INV
+#define DEFAULT_BTN_BKGD_INV DEFAULT_TC_BKGD
+#define DEFAULT_BTN_FRGD_INV DEFAULT_TC_FRGD
 
 // for Window
 #define DEFAULT_WINDOW_WIDTH 800
