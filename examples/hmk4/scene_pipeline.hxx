@@ -4,6 +4,7 @@
 #include "drawable_frame.hxx"
 #include "parameter_dict.hxx"
 #include "shader_program.hxx"
+#include "texture_objects.hxx"
 #include "utils.hxx"
 
 #include <memory>
@@ -27,14 +28,29 @@ namespace hmk4_models {
         // data
         glm::mat4 model2world_;
     };
+    class CloudModelBase {
+        public:
+        vec3  aabb_min_;
+        vec3  aabb_max_;
+        float sigma_a_, sigma_s_;
+        mat4  world2tex_;
 
-    void render_scene_defr(                                                   //
-        const mf::DrawableFrame                &fbo,                          //
-        mf::Rect                                cur_rect,                     //
-        std::vector<std::shared_ptr<ModelBase>> models,                       //
-        const FrameBufferObject                &gbuffer,                      //
-        const FrameBufferObject                &shadow_buffer,                //
-        mat4 shadow_mapping, mat4 world2clip, mat4 world2view, vec3 view_pos, //
+        std::shared_ptr<TextureObject> tex_;
+
+        public:
+        virtual ~CloudModelBase() = default;
+        virtual void activate_cloud_sampler(std::shared_ptr<ShaderProgram> prog, int at);
+    };
+
+    void render_scene_defr(                                    //
+        const mf::DrawableFrame                &fbo,           //
+        mf::Rect                                cur_rect,      //
+        std::vector<std::shared_ptr<ModelBase>> models,        //
+        std::shared_ptr<CloudModelBase>         cloud,         //
+        const FrameBufferObject                &gbuffer,       //
+        const FrameBufferObject                &shadow_buffer, //
+        mat4 shadow_mapping, mat4 world2clip, mat4 world2view, //
+        float fovy, vec3 view_pos,                             //
         mf::ParameterDict &arguments
     );
 

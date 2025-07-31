@@ -1,12 +1,14 @@
 #include "buffer_objects.hxx"
 #include "drawable_frame.hxx"
+#include "model_cloud.hxx"
 #include "model_ground.hxx"
+#include "model_windgen.hxx"
 #include "parameter_dict.hxx"
 #include "scene_pipeline.hxx"
 #include "shader_program.hxx"
 #include "world_view.hxx"
 
-// #include "debug_struct.hxx"
+#include "debug_struct.hxx"
 
 #include <memory>
 
@@ -22,6 +24,7 @@ class MyWorld : public WorldViewBase {
     std::shared_ptr<ParameterDict> arguments_;
 
     std::vector<std::shared_ptr<ModelBase>> models;
+    std::shared_ptr<CloudModelBase>         cloud;
 
     public:
     MyWorld(std::shared_ptr<ParameterDict> arguments) :
@@ -29,8 +32,12 @@ class MyWorld : public WorldViewBase {
         shadow_buffer(shadow_width, shadow_height, 0), //
         arguments_(arguments) {
 
-        auto model = std::make_shared<Ground>();
+        auto model  = std::make_shared<Ground>();
+        auto model2 = std::make_shared<Windgen>(vec3(-5, 0, 0), 3.14, 0.1);
         models.push_back(model);
+        models.push_back(model2);
+
+        cloud = std::make_shared<Cloud>();
 
         camera                    = mf::WorldCamera(vec3(0, 0, 0), vec3(0, 20, 20));
         camera.spin_at_viewpoint_ = false;
@@ -53,9 +60,10 @@ class MyWorld : public WorldViewBase {
         fbo.bind();
 
         hmk4_models::render_scene_defr(
-            fbo, cur_rect,                                                               //
-            models, gbuffer, shadow_buffer,                                              //
-            shadow_mapping, camera.world2clip(), camera.world2view(), camera.viewpoint_, //
+            fbo, cur_rect,                                            //
+            models, cloud, gbuffer, shadow_buffer,                    //
+            shadow_mapping, camera.world2clip(), camera.world2view(), //
+            camera.perspective_.fovy_, camera.viewpoint_,             //
             *arguments_
         );
         spdlog::debug("here");
@@ -72,13 +80,14 @@ int main() {
     auto arguments = std::make_shared<ParameterDict>( //
         ParameterDict_t{
             {"light.x", .1},    //
-            {"light.y", 440.},  //
-            {"light.z", 27.},   //
+            {"light.y", 4400.}, //
+            {"light.z", 270.},  //
             {"light.r", 1.},    //
             {"light.g", 1.},    //
             {"light.b", 1.},    //
             {"shininess", 32.}, //
-            {"cursor", 2.},     //
+            {"cursor", 2.},     // control vis smoothness
+            {"s_light", 1.},    //
             // {"scales.ambient", .1},  //
             // {"scales.diffuse", 2.},  //
             // {"scales.specular", .1}, //

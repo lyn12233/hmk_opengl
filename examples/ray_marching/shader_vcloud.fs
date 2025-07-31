@@ -100,7 +100,7 @@ void main() {
 
     float focal_length = 1.0 / tan(fovy * 0.5);
 
-    vec3 rd_view  = normalize(vec3(uv, -focal_length));
+    vec3 rd_view  = normalize(vec3(uv, -focal_length)); // ray dest in view space
     vec3 ray_dest = (inverse(world2view) * vec4(rd_view, 1)).xyz;
     vec3 rd       = normalize(ray_dest - camera_pos);
     vec3 ro       = camera_pos;

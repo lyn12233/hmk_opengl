@@ -24,11 +24,13 @@ namespace terrain {
         void operator=(vector<T>);
         void operator+=(const Array3D<T> &);
         void operator*=(const Array3D<T> &);
+        void operator*=(const T &);
 
         const T &operator[](array<int, 3> offs) const;
         T       &operator[](array<int, 3> offs);
 
         void vectorize_inplace(std::function<T(T)>);
+        void vectorize_inplace(std::function<T(T, int, int, int)>);
 
         array<int, 3> shape() const;
 
@@ -107,6 +109,11 @@ template<typename T> void terrain::Array3D<T>::operator*=(const Array3D<T> &o) {
         data_[i] *= o.data_[i];
     }
 }
+template<typename T> void terrain::Array3D<T>::operator*=(const T &t) {
+    for (int i = 0; i < data_.size(); i++) {
+        data_[i] *= t;
+    }
+}
 
 template<typename T> const T &terrain::Array3D<T>::operator[](array<int, 3> offs) const {
     return const_cast<Array3D<T> *>(this)->operator[](offs);
@@ -126,6 +133,18 @@ template<typename T> T &terrain::Array3D<T>::operator[](array<int, 3> offs) {
 template<typename T> void terrain::Array3D<T>::vectorize_inplace(std::function<T(T)> f) {
     for (auto &i : data_) {
         i = f(i);
+    }
+}
+template<typename T>
+void terrain::Array3D<T>::vectorize_inplace(std::function<T(T, int, int, int)> f) {
+    for (int i = 0; i < dimX_; i++) {
+        for (int j = 0; j < dimY_; j++) {
+            for (int k = 0; k < dimZ_; k++) {
+                T val = data_[dimZ_ * dimY_ * i + dimZ_ * j + k];
+
+                data_[dimZ_ * dimY_ * i + dimZ_ * j + k] = f(val, i, j, k);
+            }
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 #include "buffer_objects.hxx"
 #include "drawable_frame.hxx"
+#include "model_cloud.hxx"
 #include "model_windgen.hxx"
 #include "parameter_dict.hxx"
 #include "scene_pipeline.hxx"
@@ -21,6 +22,7 @@ class MyWorld : public WorldViewBase {
     std::shared_ptr<ParameterDict> arguments_;
 
     std::vector<std::shared_ptr<ModelBase>> models;
+    std::shared_ptr<CloudModelBase>         cloud;
 
     public:
     MyWorld(std::shared_ptr<ParameterDict> arguments) :
@@ -35,6 +37,8 @@ class MyWorld : public WorldViewBase {
             auto model = std::make_shared<Windgen>(i, j, k);
             models.push_back(model);
         }
+
+        cloud = std::make_shared<Cloud>();
 
         camera                    = mf::WorldCamera(vec3(0, 0, 0), vec3(0, 0, 20));
         camera.spin_at_viewpoint_ = false;
@@ -57,9 +61,10 @@ class MyWorld : public WorldViewBase {
         fbo.bind();
 
         hmk4_models::render_scene_defr(
-            fbo, cur_rect,                                                               //
-            models, gbuffer, shadow_buffer,                                              //
-            shadow_mapping, camera.world2clip(), camera.world2view(), camera.viewpoint_, //
+            fbo, cur_rect,                         //
+            models, cloud, gbuffer, shadow_buffer, //
+            shadow_mapping, camera.world2clip(), camera.world2view(), camera.perspective_.fovy_,
+            camera.viewpoint_, //
             *arguments_
         );
         spdlog::debug("here");
@@ -83,6 +88,7 @@ int main() {
             {"light.b", 1.},    //
             {"shininess", 32.}, //
             {"cursor", 2.},     //
+            {"s_light", 1.},    //
             // {"scales.ambient", .1},  //
             // {"scales.diffuse", 2.},  //
             // {"scales.specular", .1}, //

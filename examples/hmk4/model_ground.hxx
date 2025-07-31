@@ -28,14 +28,14 @@ namespace hmk4_models {
         constexpr static float chunk_width  = 100;
         constexpr static float chunk_height = 100;
         constexpr static float pix_per_m    = 2;
-        constexpr static float radius       = 400;
+        constexpr static float radius       = 4000;
         constexpr static float noise_scale  = 5;
         constexpr static float hscale       = 1.2;
 
         glm::mat4 world2tex;
 
         public:
-        Ground(vec3 offs = vec3(0, -40, 0));
+        Ground(vec3 offs = vec3(0, -66, 0));
         virtual ~Ground() = default;
 
         inline void draw_gbuffer(glm::mat4 world2clip, glm::mat4 world2view) override {

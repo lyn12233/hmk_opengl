@@ -10,8 +10,8 @@ in vec3 pos;
 
 const vec3  c1         = vec3(0.54, 0.36, 0.23);
 const vec3  c2         = vec3(0.81, 0.54, 0.33);
-const float s_ambient  = 0.01;
-const float s_diffuse  = 2.;
+const float s_ambient  = 0.1;
+const float s_diffuse  = .7;
 const float s_specular = 0.01;
 const vec3  BaseN      = vec3(0, 1, 0);
 
@@ -64,5 +64,5 @@ void main() {
     g_norm = vec4(normalize(vec3(-du, 1, -dv)), 1);
     g_diff = vec4(c, s_diffuse);
     g_spec = vec4(c, s_specular);
-    g_pos  = vec4(pos, 1);
+    g_pos  = vec4(pos, s_ambient);
 }

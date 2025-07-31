@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-add_library(hmk4_lib model_windgen.cxx scene_pipeline.cxx model_ground.cxx)
+add_library(hmk4_lib model_windgen.cxx scene_pipeline.cxx model_ground.cxx model_cloud.cxx)
 
 add_executable(hmk4_test1 test_model_windgen.cxx )
 add_executable(hmk4_test2 test_model_ground.cxx )

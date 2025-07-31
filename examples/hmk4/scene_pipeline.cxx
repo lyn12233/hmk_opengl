@@ -17,7 +17,7 @@ void ModelBase::draw(
     std::vector<std::shared_ptr<ShaderProgram>> progs, glm::mat4 world2clip, glm::mat4 world2view,
     bool require_sampler
 ) {
-    assert(false);
+    assert(false && "unimplemented");
 }
 void ModelBase::draw(
     std::shared_ptr<ShaderProgram> prog, glm::mat4 world2clip, glm::mat4 world2view,
@@ -25,20 +25,27 @@ void ModelBase::draw(
 ) {
     assert(false && "unimplemented");
 }
+void CloudModelBase::activate_cloud_sampler(std::shared_ptr<ShaderProgram> prog, int at) {
+    assert(false && "unimplemented");
+}
 
-void hmk4_models::render_scene_defr(                                    //
-    const mf::DrawableFrame                &fbo,                        //
-    mf::Rect                                cur_rect,                   //
-    std::vector<std::shared_ptr<ModelBase>> models,                     //
-    const FrameBufferObject                &gbuffer,                    //
-    const FrameBufferObject                &shadow_buffer,              //
-    mat4 world2shadow, mat4 world2clip, mat4 world2view, vec3 view_pos, //
+void hmk4_models::render_scene_defr(                       //
+    const mf::DrawableFrame                &fbo,           //
+    mf::Rect                                cur_rect,      //
+    std::vector<std::shared_ptr<ModelBase>> models,        //
+    std::shared_ptr<CloudModelBase>         cloud,         //
+    const FrameBufferObject                &gbuffer,       //
+    const FrameBufferObject                &shadow_buffer, //
+    mat4 world2shadow, mat4 world2clip, mat4 world2view,   //
+    float fovy, vec3 view_pos,                             //
     mf::ParameterDict &arguments
 
 ) {
 
     // suppose fbo is cleared
 
+    //
+    //
     // init
     spdlog::trace("render_scene_defr: init");
 
@@ -64,6 +71,8 @@ void hmk4_models::render_scene_defr(                                    //
         vao->unbind();
     }
 
+    //
+    //
     // draw to gbuffer
     spdlog::trace("render_scene_defr: draw to gbuffer");
 
@@ -84,9 +93,8 @@ void hmk4_models::render_scene_defr(                                    //
         model->draw_gbuffer(world2clip, world2view);
     }
 
-    // gbuffer.unbind();
-    // glDrawBuffer(GL_BACK);
-
+    //
+    //
     // shadow mapping
     spdlog::debug("render_scene_defr: shadow mapping");
 
@@ -101,6 +109,8 @@ void hmk4_models::render_scene_defr(                                    //
     shadow_buffer.unbind();
     glDrawBuffer(GL_BACK);
 
+    //
+    //
     // calc visibility
     spdlog::trace("render to vis");
 
@@ -118,17 +128,23 @@ void hmk4_models::render_scene_defr(                                    //
 
     prog_vis->set_value("world2shadow", world2shadow);
     prog_vis->set_value("world2clip", world2clip);
+    prog_vis->set_value("light_pos", arguments.get("light.x", "light.y", "light.z"));
+
     shadow_buffer.tex_depth()->activate_sampler(prog_vis, "shadow_tex", 0);
     gbuffer.tex(0)->activate_sampler(prog_vis, "gbuffer.t_pos", 1);
     gbuffer.tex(1)->activate_sampler(prog_vis, "gbuffer.t_norm", 2);
     prog_vis->set_value("cursor", (float)arguments.get<double>("cursor"));
 
+    cloud->activate_cloud_sampler(prog_vis, 3);
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     vao->unbind();
     MY_CHECK_FAIL
 
+    //
+    //
     // draw to frame
-    spdlog::trace("render_scene_defr: to frame");
+    spdlog::debug("render_scene_defr: to frame");
 
     fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 0, 255});
     prog_draw->use();
@@ -143,10 +159,15 @@ void hmk4_models::render_scene_defr(                                    //
     prog_draw->set_value("view_pos", view_pos);
     prog_draw->set_value("light_pos", arguments.get("light.x", "light.y", "light.z"));
     prog_draw->set_value("light_color", arguments.get("light.r", "light.g", "light.b"));
+    prog_draw->set_value("s_light", (float)arguments.get<double>("s_light"));
     prog_draw->set_value("shininess", (float)arguments.get<double>("shininess"));
 
-    prog_draw->set_value("light_world2clip", world2shadow);
-    shadow_buffer.tex_depth()->activate_sampler(prog_draw, "shadow_tex", 0);
+    cloud->activate_cloud_sampler(prog_draw, 6);
+    prog_draw->set_value("world2view", world2view);
+    prog_draw->set_value("fovy", (float)fovy);
+
+    // prog_draw->set_value("light_world2clip", world2shadow);
+    // shadow_buffer.tex_depth()->activate_sampler(prog_draw, "shadow_tex", 0);
 
     gbuffer.tex(0)->activate_sampler(prog_draw, "gbuffer.t_pos", 1);
     gbuffer.tex(1)->activate_sampler(prog_draw, "gbuffer.t_norm", 2);
