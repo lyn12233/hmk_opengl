@@ -137,10 +137,6 @@ FrameBufferObject::FrameBufferObject(
             );
             tex->from_data(nullptr, width_, height_);
 
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex->ID(), 0
-            );
-
             color_attachments.push_back(tex);
         }
     } else {
@@ -152,14 +148,13 @@ FrameBufferObject::FrameBufferObject(
     if (require_depth_buffer) {
         spdlog::debug("FrameBufferObject::FrameBufferObject: gen depth att");
 
-        tex_depth_ =
-            std::make_shared<TextureObject>("", 0, TextureParameter(), GL_DEPTH_COMPONENT24);
-        tex_depth_->from_data(nullptr, width_, height_);
-
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_depth_->ID(), 0
+        tex_depth_ = std::make_shared<TextureObject>(
+            "", 0, TextureParameter("discrete"), GL_DEPTH_COMPONENT24
         );
+        tex_depth_->from_data(nullptr, width_, height_);
     }
+
+    attach_textures();
 
     // check completeness
     validate();
@@ -200,6 +195,22 @@ FrameBufferObject &FrameBufferObject::operator=(FrameBufferObject &&o) {
         o.ID_ = 0;
     }
     return *this;
+}
+
+void FrameBufferObject::attach_textures() const {
+    bind();
+    for (int i = 0; i < color_attachments.size(); i++) {
+        assert((bool)color_attachments[i]);
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color_attachments[i]->ID(), 0
+        );
+    }
+    if (tex_depth_) {
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_depth_->ID(), 0
+        );
+    }
+    validate();
 }
 
 void FrameBufferObject::validate() const {

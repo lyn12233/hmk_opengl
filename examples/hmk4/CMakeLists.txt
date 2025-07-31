@@ -6,7 +6,7 @@ add_executable(hmk4_test1 test_model_windgen.cxx )
 add_executable(hmk4_test2 test_model_ground.cxx )
 
 foreach(hmk4_targ hmk4_lib hmk4_test1 hmk4_test2)
-    target_link_libraries(${hmk4_targ} PUBLIC minimal_framework procedural model)
+    target_link_libraries(${hmk4_targ} PUBLIC minimal_framework procedural model impl_stb_perlin_impl)
     # add_test(NAME ${test_targ}_test COMMAND ${test_targ})
 endforeach()
 

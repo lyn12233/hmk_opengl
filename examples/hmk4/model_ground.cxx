@@ -20,7 +20,9 @@ Ground::Ground(vec3 offs) {
 
     // init
     prog_defr_ground = std::make_shared<ShaderProgram>("defr_ground.vs", "defr_ground.fs");
-    height_map       = std::make_shared<TextureObject>("", 0, TextureParameter("smooth"), GL_R32F);
+    height_map       = std::make_shared<TextureObject>(
+        "", 0, TextureParameter("smooth"), GL_R32F, GL_TEXTURE_2D, true
+    );
 
     std::vector<float> verts;
     nb_verts = 0;

@@ -107,6 +107,8 @@ namespace glwrapper {
         inline ~FrameBufferObject() { cleanup(); };
         void cleanup();
 
+        void attach_textures() const;
+
         /// @brief validate fbo completeness
         void validate() const;
 

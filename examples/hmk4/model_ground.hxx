@@ -25,10 +25,10 @@ namespace hmk4_models {
         std::shared_ptr<ShaderProgram> prog_defr_ground;
         std::shared_ptr<TextureObject> height_map;
 
-        constexpr static float chunk_width  = 100;
-        constexpr static float chunk_height = 100;
+        constexpr static float chunk_width  = 400;
+        constexpr static float chunk_height = 400;
         constexpr static float pix_per_m    = 2;
-        constexpr static float radius       = 4000;
+        constexpr static float radius       = 16000;
         constexpr static float noise_scale  = 5;
         constexpr static float hscale       = 1.2;
 
@@ -39,7 +39,6 @@ namespace hmk4_models {
         virtual ~Ground() = default;
 
         inline void draw_gbuffer(glm::mat4 world2clip, glm::mat4 world2view) override {
-            spdlog::debug("here2");
             draw(
                 std::vector{prog_defr_ground}, //
                 world2clip, world2view, true

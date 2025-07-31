@@ -7,11 +7,13 @@
 #define DEFAULT_FBO_HEIGHT 600
 
 // for GlfwInst
-#define DEFAULT_GL_VERSION "3.3"
+#define DEFAULT_GL_VERSION "4.0"
 
 // for DrawableFrame
 #define DEFAULT_CLEAR_COLOR                                                                        \
     { 0, 0, 0, 0 }
+#define DEFAULT_SCREEN_SCALING 1
+#define DEFAULT_GBUFFER_SCALING 1
 
 // for BoxSizer
 #define DEFAULT_SIZER_BORDER 10

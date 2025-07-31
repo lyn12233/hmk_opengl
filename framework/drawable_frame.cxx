@@ -1,14 +1,17 @@
 #include "drawable_frame.hxx"
 #include "buffer_objects.hxx"
 #include "checkfail.hxx"
+#include "config.hxx"
 #include "shader_program.hxx"
 #include "texture_objects.hxx"
 #include "utils.hxx"
+#include <memory>
 #include <spdlog/spdlog.h>
 
 using glwrapper::BufferObject;
 using glwrapper::ShaderProgram;
 using glwrapper::TextureObject;
+using glwrapper::TextureParameter;
 using glwrapper::VertexArrayObject;
 using glwrapper::VertexBufferObject;
 using mf::DrawableFrame;
@@ -47,11 +50,18 @@ void main() {                           \n\
 }";
 std::shared_ptr<ShaderProgram> DrawableFrame::cp_prog{};
 
-DrawableFrame::DrawableFrame(
-    GLuint width, GLuint height, int nb_color_attachment, bool require_depth_buffer
-) :
-    FrameBufferObject(width, height, nb_color_attachment, require_depth_buffer),
+DrawableFrame::DrawableFrame(GLuint width, GLuint height) :
+    FrameBufferObject(width * DEFAULT_SCREEN_SCALING, height * DEFAULT_SCREEN_SCALING, 1, true), //
     cur_rect_(0, 0, width, height) {
+
+    // reset color_att
+    color_attachments[0] = std::make_shared<TextureObject>(
+        "", 0, TextureParameter("smooth"), GL_RGBA32F, GL_TEXTURE_2D, false
+    );
+    color_attachments[0]->from_data(
+        nullptr, width * DEFAULT_SCREEN_SCALING, height * DEFAULT_SCREEN_SCALING
+    );
+    attach_textures();
 
     // utilities init parms and prog
     MY_CHECK_FAIL
@@ -113,7 +123,7 @@ void DrawableFrame::draw(bool to_frame) {
     }
     cp_prog->use();
     cp_vao->bind();
-    color_attachments[0]->activate_sampler(cp_prog, "texture0");
+    color_attachments[0]->activate_sampler(cp_prog, "texture0", 0);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
@@ -164,7 +174,7 @@ void DrawableFrame::paste_tex(std::shared_ptr<TextureObject> tex, mf::Rect rect)
     // paste tex
     cp_prog->use();
     cp_vao->bind();
-    tex->activate_sampler(cp_prog, "texture0");
+    tex->activate_sampler(cp_prog, "texture0", 0);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 

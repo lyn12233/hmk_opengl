@@ -33,7 +33,7 @@ uniform mat4  world2view;
 uniform float fovy;
 
 const float s_emit            = 0.05;
-const float nb_iter1          = 30;
+const float nb_iter1          = 60;
 const float nb_iter2          = 10;
 const float strength_modifier = 8.;
 const vec3  bkgd_color        = vec3(0.53, 0.81, .92);

@@ -41,7 +41,7 @@ Cloud::Cloud(vec3 aabb_min, vec3 aabb_max, float pix_per_m, int seed1, int seed2
         v *= 0.05;
         return (float)v;
     });
-    spdlog::debug("here");
+
     // cloud material
     sigma_a_ = 0.002;
     sigma_s_ = 0.098;

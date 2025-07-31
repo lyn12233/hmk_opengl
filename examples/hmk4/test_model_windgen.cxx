@@ -17,18 +17,20 @@ using namespace hmk4_models;
 class MyWorld : public WorldViewBase {
     constexpr static int shadow_width = 4000, shadow_height = 4000;
 
-    FrameBufferObject              gbuffer;
-    FrameBufferObject              shadow_buffer;
-    std::shared_ptr<ParameterDict> arguments_;
+    FrameBufferObject                  gbuffer;
+    std::shared_ptr<FrameBufferObject> shadow_buffer;
+    std::shared_ptr<ParameterDict>     arguments_;
 
     std::vector<std::shared_ptr<ModelBase>> models;
     std::shared_ptr<CloudModelBase>         cloud;
 
     public:
     MyWorld(std::shared_ptr<ParameterDict> arguments) :
-        gbuffer(800, 600, 5),                          //
-        shadow_buffer(shadow_width, shadow_height, 0), //
+        gbuffer(800, 600, 5), //
+        // shadow_buffer(shadow_width, shadow_height, 0), //
         arguments_(arguments) {
+
+        shadow_buffer = std::make_shared<FrameBufferObject>(shadow_width, shadow_height, 0);
 
         for (auto [i, j, k] : std::vector<std::tuple<glm::vec3, float, float>>{
                  //  {{0, 0, 0}, 0., 1.}, //
@@ -61,13 +63,13 @@ class MyWorld : public WorldViewBase {
         fbo.bind();
 
         hmk4_models::render_scene_defr(
-            fbo, cur_rect,                         //
-            models, cloud, gbuffer, shadow_buffer, //
-            shadow_mapping, camera.world2clip(), camera.world2view(), camera.perspective_.fovy_,
+            fbo, cur_rect,                           //
+            models, cloud, gbuffer,                  //
+            {shadow_buffer}, {shadow_mapping}, {1.}, //
+            camera.world2clip(), camera.world2view(), camera.perspective_.fovy_,
             camera.viewpoint_, //
             *arguments_
         );
-        spdlog::debug("here");
 
         return false;
     }

@@ -29,15 +29,17 @@ void CloudModelBase::activate_cloud_sampler(std::shared_ptr<ShaderProgram> prog,
     assert(false && "unimplemented");
 }
 
-void hmk4_models::render_scene_defr(                       //
-    const mf::DrawableFrame                &fbo,           //
-    mf::Rect                                cur_rect,      //
-    std::vector<std::shared_ptr<ModelBase>> models,        //
-    std::shared_ptr<CloudModelBase>         cloud,         //
-    const FrameBufferObject                &gbuffer,       //
-    const FrameBufferObject                &shadow_buffer, //
-    mat4 world2shadow, mat4 world2clip, mat4 world2view,   //
-    float fovy, vec3 view_pos,                             //
+void hmk4_models::render_scene_defr(                                //
+    const mf::DrawableFrame                        &fbo,            //
+    mf::Rect                                        cur_rect,       //
+    std::vector<std::shared_ptr<ModelBase>>         models,         //
+    std::shared_ptr<CloudModelBase>                 cloud,          //
+    const FrameBufferObject                        &gbuffer,        //
+    std::vector<std::shared_ptr<FrameBufferObject>> shadow_buffers, //
+    std::vector<mat4>                               world2shadow,   //
+    std::vector<float>                              portions,       //
+    mat4 world2clip, mat4 world2view,                               //
+    float fovy, vec3 view_pos,                                      //
     mf::ParameterDict &arguments
 
 ) {
@@ -96,18 +98,21 @@ void hmk4_models::render_scene_defr(                       //
     //
     //
     // shadow mapping
-    spdlog::debug("render_scene_defr: shadow mapping");
+    spdlog::trace("render_scene_defr: shadow mapping");
 
-    shadow_buffer.bind();
-    glViewport(0, 0, shadow_buffer.width(), shadow_buffer.height());
-    glClear(GL_DEPTH_BUFFER_BIT);
+    assert(shadow_buffers.size() <= world2shadow.size());
+    for (int i = 0; i < shadow_buffers.size(); i++) {
+        shadow_buffers[i]->bind();
+        glViewport(0, 0, shadow_buffers[i]->width(), shadow_buffers[i]->height());
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-    for (auto &model : models) {
-        model->draw(prog_shade, world2shadow, mat4(), false);
+        for (auto &model : models) {
+            model->draw(prog_shade, world2shadow[i], mat4(), false);
+        }
+
+        shadow_buffers[i]->unbind();
+        glDrawBuffer(GL_BACK);
     }
-
-    shadow_buffer.unbind();
-    glDrawBuffer(GL_BACK);
 
     //
     //
@@ -126,16 +131,26 @@ void hmk4_models::render_scene_defr(                       //
 
     glDisable(GL_DEPTH_TEST);
 
-    prog_vis->set_value("world2shadow", world2shadow);
     prog_vis->set_value("world2clip", world2clip);
     prog_vis->set_value("light_pos", arguments.get("light.x", "light.y", "light.z"));
 
-    shadow_buffer.tex_depth()->activate_sampler(prog_vis, "shadow_tex", 0);
-    gbuffer.tex(0)->activate_sampler(prog_vis, "gbuffer.t_pos", 1);
-    gbuffer.tex(1)->activate_sampler(prog_vis, "gbuffer.t_norm", 2);
+    int tex_id = 0;
+    assert(shadow_buffers.size() <= portions.size());
+    for (auto &shadow_buffer : shadow_buffers) {
+        shadow_buffer->tex_depth()->activate_sampler(
+            prog_vis, fmt::format("shadow_tex[{}]", tex_id), tex_id
+        );
+        prog_vis->set_value(fmt::format("world2shadow[{}]", tex_id), world2shadow[tex_id]);
+        prog_vis->set_value(fmt::format("shadow_portions[{}]", tex_id), portions[tex_id]);
+        tex_id++;
+    }
+    prog_vis->set_value("nb_shadow_tex", tex_id);
+
+    gbuffer.tex(0)->activate_sampler(prog_vis, "gbuffer.t_pos", tex_id + 1);
+    gbuffer.tex(1)->activate_sampler(prog_vis, "gbuffer.t_norm", tex_id + 2);
     prog_vis->set_value("cursor", (float)arguments.get<double>("cursor"));
 
-    cloud->activate_cloud_sampler(prog_vis, 3);
+    cloud->activate_cloud_sampler(prog_vis, tex_id + 3);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     vao->unbind();
@@ -144,7 +159,7 @@ void hmk4_models::render_scene_defr(                       //
     //
     //
     // draw to frame
-    spdlog::debug("render_scene_defr: to frame");
+    spdlog::trace("render_scene_defr: to frame");
 
     fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 0, 255});
     prog_draw->use();

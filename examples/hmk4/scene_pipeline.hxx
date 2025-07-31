@@ -42,15 +42,17 @@ namespace hmk4_models {
         virtual void activate_cloud_sampler(std::shared_ptr<ShaderProgram> prog, int at);
     };
 
-    void render_scene_defr(                                    //
-        const mf::DrawableFrame                &fbo,           //
-        mf::Rect                                cur_rect,      //
-        std::vector<std::shared_ptr<ModelBase>> models,        //
-        std::shared_ptr<CloudModelBase>         cloud,         //
-        const FrameBufferObject                &gbuffer,       //
-        const FrameBufferObject                &shadow_buffer, //
-        mat4 shadow_mapping, mat4 world2clip, mat4 world2view, //
-        float fovy, vec3 view_pos,                             //
+    void render_scene_defr(                                             //
+        const mf::DrawableFrame                        &fbo,            //
+        mf::Rect                                        cur_rect,       //
+        std::vector<std::shared_ptr<ModelBase>>         models,         //
+        std::shared_ptr<CloudModelBase>                 cloud,          //
+        const FrameBufferObject                        &gbuffer,        //
+        std::vector<std::shared_ptr<FrameBufferObject>> shadow_buffer,  //
+        std::vector<mat4>                               shadow_mapping, //
+        std::vector<float>                              portions,       //
+        mat4 world2clip, mat4 world2view,                               //
+        float fovy, vec3 view_pos,                                      //
         mf::ParameterDict &arguments
     );
 

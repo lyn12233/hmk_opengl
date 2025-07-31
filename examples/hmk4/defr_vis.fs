@@ -1,4 +1,4 @@
-#version 330 core
+#version 400 core
 
 layout(location = 0) out vec4 t_vis;
 
@@ -10,8 +10,10 @@ uniform struct {
 } gbuffer;
 
 // shadow mapping attr
-uniform sampler2D shadow_tex;
-uniform mat4      world2shadow;
+uniform sampler2D shadow_tex[8];
+uniform float     shadow_portions[8];
+uniform mat4      world2shadow[8];
+uniform int       nb_shadow_tex;
 uniform vec3      light_pos;
 
 uniform mat4 world2clip;
@@ -35,11 +37,12 @@ vec3 query_norm(vec2 uv) { return normalize(texture(gbuffer.t_norm, uv).xyz); }
 bool should_discard(vec2 uv) { return texture(gbuffer.t_pos, uv).z == 0.; }
 
 float depth2vis(float cur_depth, float tex_depth) { //
-    return cur_depth < tex_depth + cursor ? 1. : (cur_depth - tex_depth - cursor) * 1e-5;
+    return cur_depth < tex_depth + cursor ? 1.
+                                          : clamp((tex_depth + cursor - cur_depth) * 0.1 + 1, 0, 1);
+    // return float(cur_depth < tex_depth + cursor);
 }
 
-float query_visibility(vec3 pos) {
-    // get pos' uv in gbuffer to adjust pos
+float query_visibility_indexed(vec3 pos, int idx) { // get pos' uv in gbuffer to adjust pos
     vec4 pos_clip = world2clip * vec4(pos, 1.0);
     vec2 pos_uv   = pos_clip.xy / pos_clip.w * 0.5 + 0.5;
     if (should_discard(pos_uv)) return -1.;
@@ -48,20 +51,34 @@ float query_visibility(vec3 pos) {
     pos = pos2;
 
     // get light map's uv
-    vec4 light_clip = world2shadow * vec4(pos, 1.0);
+    vec4 light_clip = world2shadow[idx] * vec4(pos, 1.0);
     vec3 light_uv;
     light_uv.xy = light_clip.xy / light_clip.w * 0.5 + 0.5;
 
     // check uv threshold
     float visibility;
     if (light_uv.x < 0.0 || light_uv.x > 1.0 || light_uv.y < 0.0 || light_uv.y > 1.0) {
-        visibility = 1.;
+        visibility = -1.;
     } else {
-        float tex_depth = texture(shadow_tex, light_uv.xy).r;
+        float tex_depth = texture(shadow_tex[idx], light_uv.xy).r;
         tex_depth       = (tex_depth * 2 - 1) * light_clip.w;
         visibility      = depth2vis(light_clip.z, tex_depth);
     }
     return visibility;
+}
+
+float query_visibility(vec3 pos) {
+    float vis     = 0.;
+    float portion = 0.;
+    for (int i = 0; i < min(nb_shadow_tex, 8); i++) {
+        float v = query_visibility_indexed(pos, i);
+        if (v >= 0.) {
+            vis += v * shadow_portions[i];
+            portion += shadow_portions[i];
+        }
+    }
+    return clamp(portion != 0. ? vis / portion : 1., 0, 1);
+    // return vis / portion;
 }
 
 float query_vis_aa(vec3 pos, vec3 norm, float dist) {
@@ -79,7 +96,7 @@ float query_vis_aa(vec3 pos, vec3 norm, float dist) {
     points[7] = pos - normalize(va + vb) * dist;
     points[8] = pos - normalize(va - vb) * dist;
     float portions[9];
-    portions[0] = 1., portions[1] = 1., portions[2] = 1., portions[3] = 1., portions[4] = 1.;
+    portions[0] = 4., portions[1] = 2., portions[2] = 2., portions[3] = 2., portions[4] = 2.;
     portions[5] = 1., portions[6] = 1., portions[7] = 1., portions[8] = 1.;
     float portion    = 0;
     float visibility = 0;
@@ -141,7 +158,7 @@ float query_transmittance(vec3 pos) {
 
 void main() {
     float sample_dist = cursor * 1e-5; // unused
-    sample_dist       = .1;
+    sample_dist       = .05;
 
     vec2 uv = texCoord;
 

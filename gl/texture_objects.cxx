@@ -250,11 +250,12 @@ TextureParameter::TextureParameter(std::string type) {
         );
     } else if (type == "smooth") {
         *this = ::TextureParameter(
-            GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_LINEAR, GL_LINEAR,
-            GL_TEXTURE_2D
+            GL_REPEAT, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR, GL_TEXTURE_2D
         );
     } else {
-        *this = ::TextureParameter();
+        // *this = ::TextureParameter();
+        spdlog::error("TextureParameter::TextureParameter: unknown builtin type: {}", type);
+        exit(-1);
     }
 }
 

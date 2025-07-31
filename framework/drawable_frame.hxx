@@ -17,10 +17,7 @@ namespace mf {
 
     class DrawableFrame : public FrameBufferObject {
         public:
-        DrawableFrame(
-            GLuint width = DEFAULT_FBO_WIDTH, GLuint height = DEFAULT_FBO_HEIGHT,
-            int nb_color_attachment = 1, bool require_depth_buffer = true
-        );
+        DrawableFrame(GLuint width = DEFAULT_FBO_WIDTH, GLuint height = DEFAULT_FBO_HEIGHT);
         DrawableFrame &operator=(DrawableFrame &&o);
         inline ~DrawableFrame() { cleanup(); };
         void cleanup();
