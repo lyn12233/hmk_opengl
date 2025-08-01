@@ -10,6 +10,7 @@
 #include "world_view.hxx"
 
 #include <glm/common.hpp>
+#include <glm/fwd.hpp>
 #include <glm/matrix.hpp>
 #include <iostream>
 #include <memory>
@@ -23,10 +24,8 @@
     #include "debug_struct.hxx"
 #endif
 
-using glm::cos;
-using glm::pi;
-using glm::sin;
 using namespace glwrapper;
+using namespace glm;
 
 class TheTriangle : public mf::WorldViewBase {
     public:
@@ -73,7 +72,10 @@ class TheTriangle : public mf::WorldViewBase {
         vbo.SetAttribPointer(1, 3, GL_FLOAT, false, 5 * sizeof(float), (void *)(2 * sizeof(float)));
         vao.unbind();
 
-        camera = mf::WorldCamera(vec3(0, 0, 0), vec3(0, 0, 20));
+        camera = mf::WorldCamera(
+            vec3(0, 0, 0), vec3(0, 0, 1e5), mf::CameraPerspective(16 * 1e-5, 8, 6, 1, 1e8), 0, 0, 0,
+            0
+        );
     }
     bool draw(mf::DrawableFrame &fbo) override {
         // calc t and transform matrix
@@ -82,47 +84,42 @@ class TheTriangle : public mf::WorldViewBase {
         t = t - glm::floor(t / (tmove + tspin)) * (tmove + tspin);
         // spdlog::debug("t:{:.3f}",t);
 
-        glm::mat3 mat = {
-            1, 0, t * vmove, //
-            0, 1, 0,         //
-            0, 0, 1,         //
-        };
+        auto mat = mat3(vec3(1, 0, 0), vec3(0, 1, 0), vec3(glm::min(t, tmove) * vmove, 0, 1));
 
         if (t > tmove) {
             float theta = (t - tmove) * vspin;
 
-            mat = glm::mat3(
-                      1, 0, 0,      //
-                      0, 1, -yspin, //
-                      0, 0, 1       //
-                  ) *
-                  glm::mat3(
-                      cos(theta), -sin(theta), 0, //
-                      sin(theta), cos(theta), 0,  //
-                      0, 0, 1                     //
-                  ) *
-                  glm::mat3(
-                      1, 0, 0,     //
-                      0, 1, yspin, //
-                      0, 0, 1      //
-                  ) *
-                  glm::mat3(
-                      1, 0, tmove * vmove, //
-                      0, 1, 0,             //
-                      0, 0, 1              //
-                  );
-            /*填充顺序实际为转置*/
+            mat =
+                mat * mat3(vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, +yspin, 1)) * //
+                mat3(
+                    vec3(cos(theta), sin(theta), 0), vec3(-sin(theta), cos(theta), 0), vec3(0, 0, 1)
+                ) *
+                mat3(vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, -yspin, 1));
         }
 
         fbo.clear_color(cur_rect);
         fbo.viewport(cur_rect);
 
         prog->use();
-        prog->set_value("T", glm::transpose(mat));
+        prog->set_value("T", mat);
         prog->set_value("world2clip", camera.world2clip());
         vao.bind();
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        MY_CHECK_FAIL
+
+        if (glm::abs(t) < 1e-2 && !screenshot1_done ||
+            glm::abs(t - tmove - tspin) < 1e-2 && !screenshot2_done) {
+            if (glm::abs(t) < 1e-2)
+                screenshot1_done = true;
+            else
+                screenshot2_done = true;
+            if (auto win = window_.lock()) {
+                win->fbo_->do_screenshot(cur_rect);
+            } else {
+                spdlog::error("win not referred");
+            }
+        }
 
         return false;
     }
@@ -136,8 +133,11 @@ class TheTriangle : public mf::WorldViewBase {
 
     float t0;
 
+    bool screenshot1_done = false;
+    bool screenshot2_done = false;
+
     constexpr static float tmove = 1.;
-    constexpr static float vmove = 4.;
+    constexpr static float vmove = 5.;
     constexpr static float tspin = 1.;
     constexpr static float vspin = pi<float>() / 2;
     constexpr static float yspin = 5;
@@ -156,7 +156,6 @@ int main() {
     sizer->add(triangle, 1.);
     sizer->add(btn, 0.);
     window->set_root(sizer);
-    // triangle->event_at(mf::EVT_FOCUS, mf::Pos(), mf::Rect());
-    window->set_focus(triangle);
+    triangle->event_at(mf::EVT_FOCUS, mf::Pos(), mf::Rect());
     window->mainloop();
 }

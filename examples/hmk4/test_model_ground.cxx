@@ -16,6 +16,7 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/scalar_constants.hpp>
 #include <memory>
 
 using namespace mf;
@@ -72,6 +73,7 @@ class MyWorld : public WorldViewBase {
 
         spdlog::debug("MyWorld::draw");
 
+        // prepare shadow
         vec3  light_pos = arguments_->get("light.x", "light.y", "light.z");
         vec3  shade_to  = vec3(0);
         float dist      = glm::length(light_pos - shade_to);
@@ -87,8 +89,12 @@ class MyWorld : public WorldViewBase {
             ) *
             glm::lookAt(light_pos, vec3(0), vec3(0, 0, 1));
 
+        // prepare fbo
         fbo.clear_color(cur_rect, GL_COLOR_BUFFER_BIT, {0, 0, 255, 255});
         fbo.bind();
+
+        // set fov
+        camera.perspective_.fovy_ = arguments_->get<double>("fov");
 
         hmk4_models::render_scene_defr(
             fbo, cur_rect,                                                                        //
@@ -120,15 +126,16 @@ int main() {
 
     auto arguments = std::make_shared<ParameterDict>( //
         ParameterDict_t{
-            {"light.x", .1},    //
-            {"light.y", 4400.}, //
-            {"light.z", 270.},  //
-            {"light.r", 1.},    //
-            {"light.g", 1.},    //
-            {"light.b", 1.},    //
-            {"shininess", 32.}, //
-            {"cursor", 8.},     // control vis smoothness
-            {"s_light", 1.},    //
+            {"light.x", .1},                 //
+            {"light.y", 4400.},              //
+            {"light.z", 270.},               //
+            {"light.r", 1.},                 //
+            {"light.g", 1.},                 //
+            {"light.b", 1.},                 //
+            {"shininess", 32.},              //
+            {"cursor", 8.},                  // control vis smoothness
+            {"s_light", 1.},                 //
+            {"fov", glm::pi<double>() / 4.}, //
             // {"scales.ambient", .1},  //
             // {"scales.diffuse", 2.},  //
             // {"scales.specular", .1}, //
