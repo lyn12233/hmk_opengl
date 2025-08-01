@@ -3,7 +3,6 @@
 #include "types.hxx"
 #include <array>
 #include <cassert>
-#include <fmt/format.h>
 #include <functional>
 #include <map>
 #include <stddef.h>
@@ -12,7 +11,9 @@
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
+
 
 namespace terrain {
     using glm::vec4;

@@ -13,13 +13,14 @@ project(${proj_name})
 
 # find package
 
-# list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(glm REQUIRED)
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Stb REQUIRED)
 find_package(assimp REQUIRED)
+# find_package(fmt REQUIRED)
 
 
 # generic compile options/flags

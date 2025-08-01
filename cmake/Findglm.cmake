@@ -8,7 +8,7 @@ FetchContent_Declare(
     GIT_TAG master
 )
 
-message(STATUS "fetching glm from https://gitee.com/ltq12233/glm.git")
+message(STATUS "fetching glm")
 FetchContent_MakeAvailable(glm)
 
 if(TARGET glm::glm)
