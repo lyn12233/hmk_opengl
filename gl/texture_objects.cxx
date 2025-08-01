@@ -10,6 +10,7 @@
 #include "stb_image.h"
 #include <spdlog/spdlog.h>
 #include <stddef.h>
+#include <vector>
 
 using glwrapper::TextureImageData;
 using glwrapper::TextureObject;
@@ -200,7 +201,28 @@ void TextureObject::from_image(void *raw_image, size_t size, bool save) {
     }
 }
 
+std::vector<GLubyte> TextureObject::get_data(int &w, int &h) {
+    const auto valid_formats = std::vector<GLenum>( //
+        {GL_R8, GL_R32F, GL_RGB8, GL_RGBA8, GL_RGB32F, GL_RGBA32F}
+    );
+    if (std::count(valid_formats.begin(), valid_formats.end(), format_) == 0) {
+        spdlog::error("TextureObject::get_data: not a valid type: {}", format_);
+        exit(-1);
+    }
+
+    MY_CHECK_FAIL
+    bind();
+    glGetTexLevelParameteriv(type_, 0, GL_TEXTURE_WIDTH, &w);
+    glGetTexLevelParameteriv(type_, 0, GL_TEXTURE_HEIGHT, &h);
+
+    auto tex_data = std::vector<GLubyte>(w * h * 4);
+    glGetTexImage(type_, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
+    MY_CHECK_FAIL
+    return tex_data;
+}
+
 void TextureObject::repr(int nb_component) {
+    assert(false && "deprecated");
     bind();
     int width, height;
     glGetTexLevelParameteriv(type_, 0, GL_TEXTURE_WIDTH, &width);

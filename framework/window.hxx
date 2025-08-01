@@ -56,10 +56,12 @@ namespace mf {
         std::shared_ptr<WidgetBase> root_;
         std::shared_ptr<WidgetBase> focus_;
 
+        public:
         // managed screen output buffer, can enable downsampling for further use
         std::shared_ptr<DrawableFrame> fbo_;
 
-        public:
+        // static callbacks
+
         static Window *get_window_inst(GLFWwindow *window);
         static Pos     get_cursor_pos(GLFWwindow *window);
         static void    default_framebuffer_size_callback(GLFWwindow *window, int width, int height);

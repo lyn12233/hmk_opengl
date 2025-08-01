@@ -23,7 +23,7 @@
 
 // for TextCtrl
 #define DEFAULT_TC_WIDTH 100
-#define DEFAULT_TC_HEIGHT 20
+#define DEFAULT_TC_HEIGHT 24
 #define DEFAULT_TC_FONTSIZE 24
 #define DEFAULT_TC_BKGD                                                                            \
     { 0, 0, 0, 1 }

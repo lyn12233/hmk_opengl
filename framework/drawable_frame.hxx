@@ -53,6 +53,9 @@ namespace mf {
 
         void validate_rect(mf::Rect rect) const;
 
+        // panel-like functions
+        void do_screenshot(mf::Rect rect);
+
         protected:
         // the output rect relative to screen
         mf::Rect cur_rect_;

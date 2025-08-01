@@ -90,6 +90,8 @@ namespace glwrapper {
         void
         activate_sampler(std::shared_ptr<ShaderProgram> prog, std::string name = "", int at = -1);
 
+        //
+        //
         // setting texture data, size and format
 
         /// @brief wrapper for glTexImage2D. load data from pointer
@@ -115,8 +117,18 @@ namespace glwrapper {
         void from_image(std::string filename, bool save = true);
         void from_image(void *raw_image, size_t size, bool save = true);
 
+        //
+        //
+        // gather data
+        std::vector<GLubyte> get_data(int &w, int &h);
+
+        //
+        //
+        // repr,deprcated
         void repr(int nb_component = 4);
 
+        //
+        //
         // variables
         TextureParameter parms;
 

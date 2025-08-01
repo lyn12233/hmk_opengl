@@ -17,10 +17,11 @@
 using mf::ParameterDict;
 using mf::ParameterTC;
 
-ParameterDict::ParameterDict(int entry_per_col) : BoxSizer(), entry_per_col_(entry_per_col) {}
+ParameterDict::ParameterDict(int entry_per_col) :
+    BoxSizer(0, 0, 0, SIZER_HORIZONTAL), entry_per_col_(entry_per_col) {}
 
 ParameterDict::ParameterDict(ParameterDict_t dict, int entry_per_col) :
-    BoxSizer(), entry_per_col_(entry_per_col) {
+    BoxSizer(0, 0, 0, SIZER_HORIZONTAL), entry_per_col_(entry_per_col) {
     add(dict);
 }
 

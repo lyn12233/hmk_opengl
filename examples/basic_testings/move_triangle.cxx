@@ -1,7 +1,10 @@
 #include "buffer_objects.hxx"
+#include "button.hxx"
 #include "checkfail.hxx"
 #include "drawable_frame.hxx"
 #include "shader_program.hxx"
+#include "sizer.hxx"
+#include "utils.hxx"
 #include "widget.hxx"
 #include "window.hxx"
 #include "world_view.hxx"
@@ -142,8 +145,18 @@ class TheTriangle : public mf::WorldViewBase {
 
 int main() {
     auto window   = std::make_shared<mf::Window>();
+    auto sizer    = std::make_shared<mf::BoxSizer>(0, 0, 20, mf::SIZER_VERTICAL);
     auto triangle = std::make_shared<TheTriangle>();
-    window->set_root(triangle);
-    triangle->event_at(mf::EVT_FOCUS, mf::Pos(), mf::Rect());
+    auto btn      = std::make_shared<mf::Button>("click me?");
+
+    btn->bind_event(mf::EVT_BUTTON, [&](mf::EVENT, mf::Pos, mf::EVENT_PARM) {
+        window->fbo_->do_screenshot(triangle->cur_rect);
+    });
+
+    sizer->add(triangle, 1.);
+    sizer->add(btn, 0.);
+    window->set_root(sizer);
+    // triangle->event_at(mf::EVT_FOCUS, mf::Pos(), mf::Rect());
+    window->set_focus(triangle);
     window->mainloop();
 }

@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.10)
 
 add_library(impl_stb_image_impl stb_image_impl.cxx)
+add_library(impl_stb_image_write_impl stb_image_write_impl.cxx)
 add_library(impl_stb_truetype_impl stb_truetype_impl.cxx)
 add_library(impl_stb_perlin_impl stb_perlin_impl.cxx)
 
 foreach(impl_lib 
     impl_stb_image_impl 
+    impl_stb_image_write_impl
     impl_stb_truetype_impl
     impl_stb_perlin_impl
 )

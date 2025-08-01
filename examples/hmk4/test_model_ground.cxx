@@ -1,4 +1,5 @@
 #include "buffer_objects.hxx"
+#include "button.hxx"
 #include "config.hxx"
 #include "drawable_frame.hxx"
 #include "model_cloud.hxx"
@@ -114,7 +115,8 @@ class MyWorld : public WorldViewBase {
 int main() {
     auto window = std::make_shared<mf::Window>((int)(1080 * 1.5), 720);
 
-    auto sizer = std::make_shared<mf::BoxSizer>(0, 0, 0, mf::SIZER_HORIZONTAL);
+    auto sizer  = std::make_shared<mf::BoxSizer>(0, 0, 0, mf::SIZER_HORIZONTAL);
+    auto vsizer = std::make_shared<mf::BoxSizer>(0, 0, 0, mf::SIZER_VERTICAL);
 
     auto arguments = std::make_shared<ParameterDict>( //
         ParameterDict_t{
@@ -135,7 +137,16 @@ int main() {
 
     auto world = std::make_shared<MyWorld>(arguments);
 
-    sizer->add(world, 1.);
+    auto btn = std::make_shared<Button>("screenshot");
+
+    btn->bind_event(mf::EVT_BUTTON_UP, [&](EVENT, Pos, EVENT_PARM) {
+        window->fbo_->do_screenshot(world->cur_rect);
+    });
+
+    vsizer->add(world, 1.);
+    vsizer->add(btn, 0.);
+
+    sizer->add(vsizer, 1.);
     sizer->add(arguments, 0.3);
 
     window->set_root(sizer);

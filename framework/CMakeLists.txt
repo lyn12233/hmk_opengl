@@ -13,6 +13,7 @@ add_library(minimal_framework
 target_link_libraries(minimal_framework PUBLIC
     gl_wrapped_lib
     impl_stb_truetype_impl
+    impl_stb_image_write_impl
     ${proj_flag}
 )
 

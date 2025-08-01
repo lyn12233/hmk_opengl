@@ -1,11 +1,19 @@
-#include "drawable_frame.hxx"
+#include <cstdlib>
+#include <vector>
+#define _CRT_SECURE_NO_WARNINGS 1
+
 #include "buffer_objects.hxx"
 #include "checkfail.hxx"
 #include "config.hxx"
+#include "drawable_frame.hxx"
 #include "shader_program.hxx"
 #include "texture_objects.hxx"
 #include "utils.hxx"
+
+#include <cstdio>
 #include <memory>
+
+#include "stb_image_write.h"
 #include <spdlog/spdlog.h>
 
 using glwrapper::BufferObject;
@@ -51,7 +59,9 @@ void main() {                           \n\
 std::shared_ptr<ShaderProgram> DrawableFrame::cp_prog{};
 
 DrawableFrame::DrawableFrame(GLuint width, GLuint height) :
-    FrameBufferObject(width * DEFAULT_SCREEN_SCALING, height * DEFAULT_SCREEN_SCALING, 1, true), //
+    FrameBufferObject(
+        width * DEFAULT_SCREEN_SCALING, height * DEFAULT_SCREEN_SCALING, 1, true
+    ), // unnecessary
     cur_rect_(0, 0, width, height) {
 
     // reset color_att
@@ -203,3 +213,36 @@ void DrawableFrame::validate_rect(mf::Rect rect) const {
 }
 
 void DrawableFrame::set_cur_rect(mf::Rect rect) { cur_rect_ = rect; }
+
+void DrawableFrame::do_screenshot(mf::Rect rect) {
+    rect   = get_draw_rect(rect);
+    rect.x = glm::clamp<int>(rect.x, 0, width_);
+    rect.y = glm::clamp<int>(rect.y, 0, height_);
+    rect.w = glm::clamp<int>(rect.w, 0, width_ - rect.x);
+    rect.h = glm::clamp<int>(rect.h, 0, height_ - rect.y);
+    // spdlog::info("screenshot {},{} on {},{}", rect.w, rect.h, width_, height_);
+
+    // create temp file
+    std::string fn = "screenshot.jpg";
+    // get tex data
+    int  w, h;
+    auto tex_data = color_attachments[0]->get_data(w, h);
+    assert(w == width_ && h == height_);
+    auto tex_data_flip = std::vector<GLubyte>(rect.w * rect.h * 4);
+    // flip
+    for (int i = rect.y; i < rect.h; i++) {
+        for (int j = rect.x; j < rect.w; j++) {
+            for (int k = 0; k < 4; k++) {
+                tex_data_flip[i * rect.w * 4 + j * 4 + k] =
+                    tex_data[(h - 1 - i) * w * 4 + j * 4 + k];
+            }
+        }
+    }
+    // write image
+    if (!stbi_write_jpg(fn.c_str(), rect.w, rect.h, 4, tex_data_flip.data(), 100)) {
+        spdlog::error("screenshot failed: can't write file {}", fn);
+        return;
+    }
+    // open
+    std::system(fn.c_str());
+}
