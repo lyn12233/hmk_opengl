@@ -20,7 +20,7 @@ find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Stb REQUIRED)
-find_package(assimp REQUIRED)
+# find_package(assimp REQUIRED)
 # find_package(fmt REQUIRED)
 
 
@@ -33,7 +33,7 @@ target_link_libraries(${proj_flag} INTERFACE
     glfw
     glad::glad
     glm::glm
-    assimp::assimp
+    # assimp::assimp
 )
 target_include_directories(${proj_flag} INTERFACE 
     ${Stb_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/utils
@@ -59,14 +59,8 @@ endif()
 add_subdirectory(impl)
 add_subdirectory(gl)
 add_subdirectory(framework)
-add_subdirectory(procedural)
-add_subdirectory(model)
-
-option(UTILS_BUILD_EXAMPLES "Build example subdirectory" ON)
-
-if(UTILS_BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
+# add_subdirectory(procedural)
+# add_subdirectory(model)
 
 
 # # simple test
