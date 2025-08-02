@@ -62,13 +62,6 @@ add_subdirectory(framework)
 add_subdirectory(procedural)
 add_subdirectory(model)
 
-option(UTILS_BUILD_EXAMPLES "Build example subdirectory" ON)
-
-if(UTILS_BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
-
-
 # # simple test
 # add_executable(simple_test test.cxx)
 # target_link_libraries(simple_test ${proj_flag})
