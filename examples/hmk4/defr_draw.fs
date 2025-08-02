@@ -63,27 +63,28 @@ void main() {
     vec3 color;
     bool test_block;
     if (should_discard(uv)) {
-        // draw_sky(uv);
-        // return;
+        // reverse hdr
         color      = bkgd_color / (vec3(1) - bkgd_color) * s_bkgd;
         test_block = false;
     } else {
 
-        // Lighting vectors
+        //
+        //
+        // apply lighting model
         vec3 N = normalize(norm);
         vec3 L = normalize(light_pos - pos);
         vec3 V = normalize(view_pos - pos);
         vec3 H = normalize(L + V);
 
-        // Diffuse term (Lambert)
+        //  diffuse
         float NdotL   = max(dot(N, L), 0.0);
         vec3  diffuse = c_diff * NdotL;
 
-        // Specular term (Blinn‑Phong)
+        // specular
         float NdotH    = max(dot(N, H), 0.0);
         vec3  specular = c_spec * pow(NdotH, shininess);
 
-        // Simple ambient
+        // ambient
         vec3 ambient = c_diff;
 
         color = ambient * s_ambient + vis * (diffuse * s_diffuse + specular * s_specular);
@@ -193,7 +194,9 @@ void draw_sky(vec2 uv, vec3 cur_bkdg, vec3 block_pos, bool test_block) {
     float cur_step, density;
     for (float t = t_enter; t <= t_exit; t += cur_step) {
         vec3 sample_pos = ro + rd * t;
-        if (length(sample_pos - view_pos) >= length(block_pos - view_pos) && test_block) break;
+        if (length(sample_pos - view_pos) >= length(block_pos - view_pos) && test_block) {
+            break;
+        }
 
         // sample and adapt step
         density  = sample_cloud(sample_pos);
@@ -201,10 +204,12 @@ void draw_sky(vec2 uv, vec3 cur_bkdg, vec3 block_pos, bool test_block) {
 
         // calc light
         float luminance = query_transmittance(sample_pos) * s_light;
-        // float luminance = s_light;
 
-        float L_o = luminance * phase_func(dot(-rd, normalize(light_pos - sample_pos))) * sigma_s /
-                        sigma_t + //
+        float L_o = luminance *
+                        phase_func( //
+                            dot(-rd, normalize(light_pos - sample_pos))
+                        ) *
+                        sigma_s / sigma_t + //
                     s_emit * sigma_a / sigma_t;
 
         // integral

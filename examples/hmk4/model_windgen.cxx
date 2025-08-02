@@ -1,4 +1,5 @@
 #include "model_windgen.hxx"
+#include "model.hxx"
 #include "shader.hxx"
 #include "shader_program.hxx"
 
@@ -9,13 +10,24 @@
 using namespace hmk4_models;
 using glm::vec3, glm::cos, glm::sin;
 
+std::shared_ptr<mf::Model> Windgen::turbn_model_ = {};
+std::shared_ptr<mf::Model> Windgen::cabin_model_ = {};
+
 Windgen::Windgen(glm::vec3 pos, float phi, float velocity) : //
-    turbn_model_(MODEL_PATH_NODE),                           //                         //
-    cabin_model_(MODEL_PATH_CABIN),                          //
+                                                             // turbn_model_(MODEL_PATH_NODE), //
+                                                             // cabin_model_(MODEL_PATH_CABIN), //
     velocity_(velocity) {
 
+    // init
+    if (!turbn_model_) {
+        turbn_model_ = std::make_shared<mf::Model>(MODEL_PATH_NODE);
+    }
+    if (!cabin_model_) {
+        cabin_model_ = std::make_shared<mf::Model>(MODEL_PATH_CABIN);
+    }
+
     spdlog::debug(
-        "#turbine model# \n{}\n#cabin model#\n{}", turbn_model_.repr(), cabin_model_.repr()
+        "#turbine model# \n{}\n#cabin model#\n{}", turbn_model_->repr(), cabin_model_->repr()
     );
 
     // init
@@ -42,7 +54,7 @@ void Windgen::draw(
     assert(progs.size() > 1);
     auto prog_turbn = progs[0];
     auto prog_cabin = progs[1];
-    for (const auto &mesh : cabin_model_.meshes) {
+    for (const auto &mesh : cabin_model_->meshes) {
         prog_cabin->use();
         prog_cabin->set_value("model2clip", world2clip * model2world_);
         prog_cabin->set_value("model2world", model2world_, true); // not used for shadow mapping
@@ -63,7 +75,7 @@ void Windgen::draw(
         vec4(-1, 0, 0, 0),             //
         vec4(0, 0, 0, 1)
     );
-    for (const auto &mesh : turbn_model_.meshes) {
+    for (const auto &mesh : turbn_model_->meshes) {
         prog_turbn->use();
         prog_turbn->set_value("model2clip", world2clip * model2world_ * spin);
         prog_turbn->set_value(

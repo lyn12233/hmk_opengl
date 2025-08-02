@@ -15,20 +15,24 @@ using mf::WidgetBase;
 using mf::Window;
 
 // window
-Window::Window(GLuint w, GLuint h, std::string title) : width_(w), height_(h), title_(title) {
+Window::Window(GLuint w, GLuint h, std::string title, std::shared_ptr<GlfwInst> inst) :
+    width_(w), height_(h), title_(title), glfw_inst_(inst) {
     spdlog::debug("Window::Window");
-    glfwInit();
+
+    if (!glfw_inst_) {
+        glfw_inst_ = std::make_shared<GlfwInst>();
+    }
+
     // window
     window_ = glfwCreateWindow(width_, height_, title_.c_str(), NULL, NULL);
     if (!window_) {
-        spdlog::error("failed to create window");
+        spdlog::error("Window::Window: failed to create window");
         exit(-1);
     }
 
     // make context current
     bind();
 
-    glfw_inst_ = std::make_shared<GlfwInst>();
     glfw_inst_->load_proc();
 
     // set callbacks

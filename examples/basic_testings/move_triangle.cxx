@@ -81,27 +81,38 @@ class TheTriangle : public mf::WorldViewBase {
         // calc t and transform matrix
         float t = (glfwGetTime() - t0);
 
+        using namespace glm;
+
+        // modulo
         t = t - glm::floor(t / (tmove + tspin)) * (tmove + tspin);
-        // spdlog::debug("t:{:.3f}",t);
 
-        auto mat = mat3(vec3(1, 0, 0), vec3(0, 1, 0), vec3(glm::min(t, tmove) * vmove, 0, 1));
+        // offsetting on x-axis
+        auto mat = mat3(
+            vec3(1, 0, 0), //
+            vec3(0, 1, 0), //
+            vec3(glm::min(t, tmove) * vmove, 0, 1)
+        );
 
+        // spin
         if (t > tmove) {
             float theta = (t - tmove) * vspin;
 
-            mat =
-                mat * mat3(vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, +yspin, 1)) * //
-                mat3(
-                    vec3(cos(theta), sin(theta), 0), vec3(-sin(theta), cos(theta), 0), vec3(0, 0, 1)
-                ) *
-                mat3(vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, -yspin, 1));
+            mat = mat * mat3(vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, +yspin, 1)) * //
+                  mat3(
+                      vec3(cos(theta), sin(theta), 0),  //
+                      vec3(-sin(theta), cos(theta), 0), //
+                      vec3(0, 0, 1)
+                  ) *
+                  mat3(vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, -yspin, 1));
         }
 
         fbo.clear_color(cur_rect);
         fbo.viewport(cur_rect);
 
         prog->use();
+        // transform to $(x',y',1)=T\cdot(x,y,1)^T$ with z=0
         prog->set_value("T", mat);
+        // pseudo transform
         prog->set_value("world2clip", camera.world2clip());
         vao.bind();
 
@@ -147,7 +158,7 @@ int main() {
     auto window   = std::make_shared<mf::Window>();
     auto sizer    = std::make_shared<mf::BoxSizer>(0, 0, 20, mf::SIZER_VERTICAL);
     auto triangle = std::make_shared<TheTriangle>();
-    auto btn      = std::make_shared<mf::Button>("click me?");
+    auto btn      = std::make_shared<mf::Button>("screenshot");
 
     btn->bind_event(mf::EVT_BUTTON, [&](mf::EVENT, mf::Pos, mf::EVENT_PARM) {
         window->fbo_->do_screenshot(triangle->cur_rect);

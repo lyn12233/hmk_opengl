@@ -17,5 +17,6 @@ endforeach()
 
 file(GLOB_RECURSE shader_files_vert "*.vs")
 file(GLOB_RECURSE shader_files_frag "*.fs")
+file(GLOB_RECURSE model_files "*.glb")
 
-install(FILES ${shader_files_vert} ${shader_files_frag} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+install(FILES ${shader_files_vert} ${shader_files_frag} ${model_files} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

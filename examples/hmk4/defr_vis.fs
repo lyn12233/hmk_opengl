@@ -42,13 +42,16 @@ float depth2vis(float cur_depth, float tex_depth) { //
     // return float(cur_depth < tex_depth + cursor);
 }
 
-float query_visibility_indexed(vec3 pos, int idx) { // get pos' uv in gbuffer to adjust pos
+float query_visibility_indexed(vec3 pos, int idx) {
+
+    // get pos' uv in gbuffer to adjust pos
     vec4 pos_clip = world2clip * vec4(pos, 1.0);
     vec2 pos_uv   = pos_clip.xy / pos_clip.w * 0.5 + 0.5;
     if (should_discard(pos_uv)) return -1.;
+
+    // adjust pos onto gbuffer
     vec3 pos2 = query_pos(pos_uv);
-    // return 1;
-    pos = pos2;
+    pos       = pos2;
 
     // get light map's uv
     vec4 light_clip = world2shadow[idx] * vec4(pos, 1.0);
@@ -60,9 +63,11 @@ float query_visibility_indexed(vec3 pos, int idx) { // get pos' uv in gbuffer to
     if (light_uv.x < 0.0 || light_uv.x > 1.0 || light_uv.y < 0.0 || light_uv.y > 1.0) {
         visibility = -1.;
     } else {
+        // get world space depth
         float tex_depth = texture(shadow_tex[idx], light_uv.xy).r;
         tex_depth       = (tex_depth * 2 - 1) * light_clip.w;
-        visibility      = depth2vis(light_clip.z, tex_depth);
+        // compare depth smoothed
+        visibility = depth2vis(light_clip.z, tex_depth);
     }
     return visibility;
 }
@@ -78,7 +83,6 @@ float query_visibility(vec3 pos) {
         }
     }
     return clamp(portion != 0. ? vis / portion : 1., 0, 1);
-    // return vis / portion;
 }
 
 float query_vis_aa(vec3 pos, vec3 norm, float dist) {

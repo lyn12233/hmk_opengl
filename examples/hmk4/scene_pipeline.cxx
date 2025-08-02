@@ -81,6 +81,12 @@ void hmk4_models::render_scene_defr(                                //
     gbuffer.bind();
     gbuffer.validate();
 
+    // struct of gbuffer:
+    // color_att_0: RGBA32F(vec3 norm ,-)
+    // color_att_1: RGBA32F(vec3 pos, ambient coeff)
+    // color_att_2: RGBA32F(RGB diffuse color, diffuse coeff)
+    // color_att_3: RGBA32F(RGB specular color, specular coeff)
+    // color_att_4: RGBA32F(float visibility)
     const GLenum draw_targ[]{
         GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
     glDrawBuffers(4, draw_targ);
@@ -180,9 +186,6 @@ void hmk4_models::render_scene_defr(                                //
     cloud->activate_cloud_sampler(prog_draw, 6);
     prog_draw->set_value("world2view", world2view);
     prog_draw->set_value("fovy", (float)fovy);
-
-    // prog_draw->set_value("light_world2clip", world2shadow);
-    // shadow_buffer.tex_depth()->activate_sampler(prog_draw, "shadow_tex", 0);
 
     gbuffer.tex(0)->activate_sampler(prog_draw, "gbuffer.t_pos", 1);
     gbuffer.tex(1)->activate_sampler(prog_draw, "gbuffer.t_norm", 2);

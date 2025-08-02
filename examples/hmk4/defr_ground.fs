@@ -33,6 +33,7 @@ void remap_coord(
     float h;
     pos2   = pos;
     coord2 = coord;
+    // converge 4 times
     for (int i = 0; i < 4; i++) {
         h      = sample_height(coord2);
         pos2   = pos2 + (h - last_h) * projV;
@@ -42,6 +43,9 @@ void remap_coord(
 }
 
 void main() {
+    //
+    // do parallax mapping
+
     vec3 V     = normalize(view_pos - pos);
     vec3 projV = V - dot(BaseN, V) * BaseN;
 
@@ -49,7 +53,12 @@ void main() {
     vec2 tex_coord2;
     remap_coord(tex_coord, projV, pos, pos2, tex_coord2);
     float h = sample_height(tex_coord2);
-    vec3  c = mix(c1, c2, exp(-1 - h));
+
+    // set realistic color by height
+    vec3 c = mix(c1, c2, exp(-1 - h));
+
+    //
+    // calc normal
 
     float tex_dist = 1. / 1000. / pix_per_m;
 
@@ -60,7 +69,7 @@ void main() {
                 sample_height(tex_coord2 - vec2(0, tex_dist))) /
                2 * pix_per_m;
 
-    // g_pos  = vec4(pos2, s_ambient);
+    // draw to gbuffer
     g_norm = vec4(normalize(vec3(-du, 1, -dv)), 1);
     g_diff = vec4(c, s_diffuse);
     g_spec = vec4(c, s_specular);

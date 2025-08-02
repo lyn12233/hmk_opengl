@@ -13,9 +13,9 @@ namespace glwrapper {
 
     class GlfwInst {
         public:
-        GlfwInst(
-            std::string version = DEFAULT_GL_VERSION, int profile = GLFW_OPENGL_CORE_PROFILE,
-            bool do_load = false
+        GlfwInst(                                     //
+            std::string version = DEFAULT_GL_VERSION, //
+            int         profile = GLFW_OPENGL_CORE_PROFILE
         );
         GlfwInst(GlfwInst &&)      = delete;
         GlfwInst(const GlfwInst &) = delete;

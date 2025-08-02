@@ -118,8 +118,11 @@ class MyWorld : public WorldViewBase {
     }
 };
 
+static auto inst = std::make_shared<GlfwInst>();
+
 int main() {
-    auto window = std::make_shared<mf::Window>((int)(1080 * 1.5), 720);
+
+    auto window = std::make_shared<mf::Window>((int)(1080 * 1.5), 720, "", inst);
 
     auto sizer  = std::make_shared<mf::BoxSizer>(0, 0, 0, mf::SIZER_HORIZONTAL);
     auto vsizer = std::make_shared<mf::BoxSizer>(0, 0, 0, mf::SIZER_VERTICAL);

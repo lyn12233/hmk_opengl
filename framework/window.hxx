@@ -21,7 +21,7 @@ namespace mf {
         public:
         Window(
             GLuint w = DEFAULT_WINDOW_WIDTH, GLuint h = DEFAULT_WINDOW_HEIGHT,
-            std::string title = ""
+            std::string title = "", std::shared_ptr<GlfwInst> inst = {}
         );
         ~Window();
 

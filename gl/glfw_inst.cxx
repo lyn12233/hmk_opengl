@@ -7,7 +7,8 @@
 
 using glwrapper::GlfwInst;
 
-GlfwInst::GlfwInst(std::string version, int profile, bool do_load) {
+GlfwInst::GlfwInst(std::string version, int profile) {
+    spdlog::info("GlfwInst::GlfwInst");
     glfwInit();
     std::string version_major, version_minor;
     std::getline(std::istringstream(version), version_major, '.');
@@ -18,13 +19,10 @@ GlfwInst::GlfwInst(std::string version, int profile, bool do_load) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, atoi(version_major.c_str()));
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, atoi(version_minor.c_str()));
     glfwWindowHint(GLFW_OPENGL_PROFILE, profile);
-
-    // load_proc
-    if (do_load) load_proc();
 }
 
 GlfwInst::~GlfwInst() {
-    spdlog::info("glfw terminate");
+    spdlog::info("GlfwInst::~GlfwInst");
     glfwTerminate();
 }
 

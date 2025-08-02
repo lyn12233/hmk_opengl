@@ -17,8 +17,8 @@ namespace hmk4_models {
     constexpr float pi = glm::pi<float>();
     class Windgen : public ModelBase {
         public:
-        mf::Model turbn_model_;
-        mf::Model cabin_model_;
+        static std::shared_ptr<mf::Model> turbn_model_;
+        static std::shared_ptr<mf::Model> cabin_model_;
 
         std::shared_ptr<ShaderProgram> prog_defr_turbn;
         std::shared_ptr<ShaderProgram> prog_defr_cabin;

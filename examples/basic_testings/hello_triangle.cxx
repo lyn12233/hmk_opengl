@@ -61,9 +61,11 @@ class TheTriangle : public mf::WorldViewBase {
         vao.unbind();
     }
     bool draw(mf::DrawableFrame &fbo) override {
+        // call glClear + glViewport
         fbo.clear_color(cur_rect);
         fbo.viewport(cur_rect);
 
+        // bind shader & Vertex Attribute
         prog->use();
         vao.bind();
 

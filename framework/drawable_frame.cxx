@@ -11,6 +11,7 @@
 #include "utils.hxx"
 
 #include <cstdio>
+#include <filesystem>
 #include <memory>
 
 #include "stb_image_write.h"
@@ -222,8 +223,6 @@ void DrawableFrame::do_screenshot(mf::Rect rect) {
     rect.h = glm::clamp<int>(rect.h, 0, height_ - rect.y);
     // spdlog::info("screenshot {},{} on {},{}", rect.w, rect.h, width_, height_);
 
-    // create temp file
-    std::string fn = "screenshot.jpg";
     // get tex data
     int  w, h;
     auto tex_data = color_attachments[0]->get_data(w, h);
@@ -238,6 +237,13 @@ void DrawableFrame::do_screenshot(mf::Rect rect) {
             }
         }
     }
+    // create file
+    std::string fn;
+    for (int i = 0; i < 255; i++) {
+        fn = fmt::format("screenshot{}.jpg", i);
+        if (!std::filesystem::exists(fn)) break;
+    }
+
     // write image
     if (!stbi_write_jpg(fn.c_str(), rect.w, rect.h, 4, tex_data_flip.data(), 100)) {
         spdlog::error("screenshot failed: can't write file {}", fn);

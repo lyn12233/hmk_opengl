@@ -13,7 +13,8 @@ project(${proj_name})
 
 # find package
 
-list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+# list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 find_package(glm REQUIRED)
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -68,6 +69,6 @@ if(UTILS_BUILD_EXAMPLES)
 endif()
 
 
-# simple test
-add_executable(simple_test test.cxx)
-target_link_libraries(simple_test ${proj_flag})
+# # simple test
+# add_executable(simple_test test.cxx)
+# target_link_libraries(simple_test ${proj_flag})
