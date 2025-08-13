@@ -18,7 +18,7 @@ namespace mf {
     // ' ' - '~' ascii char texture of given font size
     class AsciiTex : public TextureObject {
         public:
-        AsciiTex(GLuint tex_width = 20, std::string font_path = DEFAULT_TTF_PATH);
+        AsciiTex(GLuint tex_width = DEFAULT_TC_HEIGHT, std::string font_path = DEFAULT_TTF_PATH);
         ~AsciiTex();
 
         //----type: 8UC4

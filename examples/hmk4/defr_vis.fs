@@ -18,7 +18,9 @@ uniform vec3      light_pos;
 
 uniform mat4 world2clip;
 
-uniform float cursor; //=2, control shadow depth smoothness
+const float cursor = 12.; // control shadow depth smoothness
+
+const float sample_dist = 0.05;
 
 // cloud
 uniform struct CLOUD_T_ {
@@ -38,8 +40,7 @@ bool should_discard(vec2 uv) { return texture(gbuffer.t_pos, uv).z == 0.; }
 
 float depth2vis(float cur_depth, float tex_depth) { //
     return cur_depth < tex_depth + cursor ? 1.
-                                          : clamp((tex_depth + cursor - cur_depth) * 0.1 + 1, 0, 1);
-    // return float(cur_depth < tex_depth + cursor);
+                                          : clamp((tex_depth + cursor - cur_depth) * .02 + 1, 0, 1);
 }
 
 float query_visibility_indexed(vec3 pos, int idx) {
@@ -51,7 +52,8 @@ float query_visibility_indexed(vec3 pos, int idx) {
 
     // adjust pos onto gbuffer
     vec3 pos2 = query_pos(pos_uv);
-    pos       = pos2;
+    if (length(pos - pos2) > sample_dist * 100) return -1;
+    pos = pos2;
 
     // get light map's uv
     vec4 light_clip = world2shadow[idx] * vec4(pos, 1.0);
@@ -156,13 +158,9 @@ float query_transmittance(vec3 pos) {
     // beer's law
     float sigma_t = cloud.sigma_a + cloud.sigma_s;
     return exp(-sigma_t * dist);
-    // correct:
-    // return sample_cloud(ro + rd * t_enter / 2 + rd * t_exit / 2);
 }
 
 void main() {
-    float sample_dist = cursor * 1e-5; // unused
-    sample_dist       = .05;
 
     vec2 uv = texCoord;
 
@@ -176,8 +174,10 @@ void main() {
     }
 
     t_vis.r = query_vis_aa(pos, norm, sample_dist) * query_transmittance(pos);
+
+    // test
     // t_vis.r = query_transmittance(pos);
     // t_vis.r = query_vis_aa(pos, norm, sample_dist);
-    // t_vis.r = query_visibility(pos);
+    // t_vis.r = query_visibility(pos) * query_transmittance(pos);
     // t_vis.r = 1.;
 }

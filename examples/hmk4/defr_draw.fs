@@ -34,7 +34,7 @@ uniform float fovy;
 
 const float s_emit            = 0.05;
 const float nb_iter1          = 60;
-const float nb_iter2          = 10;
+const float nb_iter2          = 7;
 const float strength_modifier = 8.;
 const vec3  bkgd_color        = vec3(0.53, 0.81, .92);
 const float s_bkgd            = .5;
@@ -101,7 +101,7 @@ void main() {
     // FragColor = vec4(normalize(norm - vec3(0, 1, 0)), 1);
 }
 
-// phase function parts
+// HeyneyGrestein phase function
 float HG(float cos_theta, float g) {
     float gg = g * g;
     return (1 - gg) / pow(1 + gg - 2 * g * cos_theta, 1.5) / (4. * radians(180));
@@ -112,6 +112,7 @@ float phase_func(float cos_theta) {
     return 0.3 + hg * 2.;
 }
 
+// cloud aabb intersection
 // reuires: struct cloud
 void query_intersect_range(vec3 ro, vec3 rd, out float t_enter, out float t_exit) {
     vec3 safe_rd = rd;
@@ -155,10 +156,7 @@ float query_transmittance(vec3 pos) {
     return exp(-sigma_t * dist) * (1 - exp(-sigma_t * dist * 2));
 }
 
-// vec3 HDR(vec3 color){
-//     color=color/(color+vec3(1));
-// }
-
+// ray marching
 // requires: fovy, world2view, view_pos
 void draw_sky(vec2 uv, vec3 cur_bkdg, vec3 block_pos, bool test_block) {
     float sigma_s = cloud.sigma_s;
@@ -172,22 +170,15 @@ void draw_sky(vec2 uv, vec3 cur_bkdg, vec3 block_pos, bool test_block) {
     );
     vec3 ro = view_pos;
 
-    // vec3 rdest = normalize(vec3(uv * 2 - 1, -focal_length));
-    // rdest      = (inverse(world2view) * vec4(rdest, 1)).xyz;
-    // rd         = normalize(rdest - view_pos);
-
-    // FragColor = vec4(uv * 2 - 1, focal_length, 1);
-    // FragColor = vec4(rd, 1);
-    // FragColor = vec4(0, 1, 0, 0);
-    // return;
+    // test
+    //  FragColor = vec4(uv * 2 - 1, focal_length, 1);
+    //  FragColor = vec4(rd, 1);
+    //  FragColor = vec4(0, 1, 0, 0);
+    //  return;
 
     float t_enter, t_exit, t_step;
     query_intersect_range(ro, rd, t_enter, t_exit);
     t_step = max((t_exit - t_enter) / (nb_iter1 - 1), 0.1);
-    // if (t_exit < t_enter) {
-    //     FragColor = vec4(cur_bkdg, 1);
-    //     // return;
-    // }
 
     float radiance      = 0;
     float transmittance = 1.;

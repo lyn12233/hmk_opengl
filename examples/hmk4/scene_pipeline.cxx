@@ -88,7 +88,8 @@ void hmk4_models::render_scene_defr(                                //
     // color_att_3: RGBA32F(RGB specular color, specular coeff)
     // color_att_4: RGBA32F(float visibility)
     const GLenum draw_targ[]{
-        GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
+    };
     glDrawBuffers(4, draw_targ);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -154,7 +155,6 @@ void hmk4_models::render_scene_defr(                                //
 
     gbuffer.tex(0)->activate_sampler(prog_vis, "gbuffer.t_pos", tex_id + 1);
     gbuffer.tex(1)->activate_sampler(prog_vis, "gbuffer.t_norm", tex_id + 2);
-    prog_vis->set_value("cursor", (float)arguments.get<double>("cursor"));
 
     cloud->activate_cloud_sampler(prog_vis, tex_id + 3);
 
