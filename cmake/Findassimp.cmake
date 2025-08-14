@@ -16,7 +16,7 @@ set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
     assimp
     GIT_REPOSITORY https://gitee.com/ltq12233/assimp.git
-    GIT_TAG v5.4.0
+    GIT_TAG master
 )
 message(STATUS "fetching assimp")
 FetchContent_MakeAvailable(assimp)
