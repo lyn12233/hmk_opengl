@@ -1,0 +1,13 @@
+build/
+.*
+*.exe
+out/
+*.blend
+*.blend1
+*.fbx
+*.glb
+*.stl
+*.obj
+*.ply
+*.mtl
+out/

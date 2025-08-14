@@ -10,10 +10,9 @@
 #define DEFAULT_GL_VERSION "4.0"
 
 // for DrawableFrame
-#define DEFAULT_CLEAR_COLOR                                                                        \
-    { 0, 0, 0, 0 }
-#define DEFAULT_SCREEN_SCALING 1
-#define DEFAULT_GBUFFER_SCALING 1
+#define DEFAULT_CLEAR_COLOR {0, 0, 0, 0}
+#define DEFAULT_SCREEN_SCALING 1.5
+#define DEFAULT_GBUFFER_SCALING 1.5
 
 // for BoxSizer
 #define DEFAULT_SIZER_BORDER 10
@@ -25,14 +24,10 @@
 #define DEFAULT_TC_WIDTH 100
 #define DEFAULT_TC_HEIGHT 24
 #define DEFAULT_TC_FONTSIZE 24
-#define DEFAULT_TC_BKGD                                                                            \
-    { 0, 0, 0, 1 }
-#define DEFAULT_TC_FRGD                                                                            \
-    { 1, 1, 1, 1 }
-#define DEFAULT_TC_BKGD_INV                                                                        \
-    { 1, 1, 1, 1 }
-#define DEFAULT_TC_FRGD_INV                                                                        \
-    { 0, 0, 0, 1 }
+#define DEFAULT_TC_BKGD {0, 0, 0, 1}
+#define DEFAULT_TC_FRGD {1, 1, 1, 1}
+#define DEFAULT_TC_BKGD_INV {1, 1, 1, 1}
+#define DEFAULT_TC_FRGD_INV {0, 0, 0, 1}
 
 // button
 #define DEFAULT_BTN_BKGD DEFAULT_TC_BKGD_INV
@@ -45,10 +40,8 @@
 #define DEFAULT_WINDOW_HEIGHT 600
 
 // WorldCamera
-#define DEFAULT_CAMERA_LOOKFROM                                                                    \
-    { 50, 0, 0 }
-#define DEFAULT_CAMERA_LOOKTO                                                                      \
-    { 0, 0, 0 }
+#define DEFAULT_CAMERA_LOOKFROM {50, 0, 0}
+#define DEFAULT_CAMERA_LOOKTO {0, 0, 0}
 #define DEFAULT_CAMERA_MOVE_SPEED 10
 #define DEFAULT_CAMERA_SPIN_SPEED 2
 
