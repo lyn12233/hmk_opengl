@@ -14,9 +14,7 @@
 
 // #include "debug_struct.hxx"
 
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/ext/scalar_constants.hpp>
+#include <glm/glm.hpp>
 #include <memory>
 
 using namespace mf;
@@ -187,7 +185,7 @@ int main() {
             {"light.g", 1.},                 //
             {"light.b", 1.},                 //
             {"shininess", 32.},              //
-            {"s_light", 1.},                 //
+            {"s_light", 1.5},                //
             {"fov", glm::pi<double>() / 4.}, //
         }
     );
@@ -198,6 +196,11 @@ int main() {
 
     btn->bind_event(mf::EVT_BUTTON_UP, [&](EVENT, Pos, EVENT_PARM) {
         window->fbo_->do_screenshot(world->cur_rect);
+        spdlog::info(
+            "fovy:{},pos:{},dir:{}", world->camera.perspective_.fovy_,
+            repr(world->camera.viewpoint_),
+            repr(glm::normalize(world->camera.coord_pos_ - world->camera.viewpoint_))
+        );
     });
 
     vsizer->add(world, 1.);
@@ -209,6 +212,6 @@ int main() {
     window->set_root(sizer);
     world->event_at(mf::EVT_FOCUS, mf::Pos(), mf::Rect());
     window->draw();
-    window->fbo_->do_screenshot(world->cur_rect);
+    // window->fbo_->do_screenshot(world->cur_rect);
     window->mainloop();
 }

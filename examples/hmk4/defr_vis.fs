@@ -18,7 +18,7 @@ uniform vec3      light_pos;
 
 uniform mat4 world2clip;
 
-const float cursor = 12.; // control shadow depth smoothness
+const float cursor = 16.; // control shadow depth smoothness
 
 const float sample_dist = 0.05;
 
@@ -40,7 +40,7 @@ bool should_discard(vec2 uv) { return texture(gbuffer.t_pos, uv).z == 0.; }
 
 float depth2vis(float cur_depth, float tex_depth) { //
     return cur_depth < tex_depth + cursor ? 1.
-                                          : clamp((tex_depth + cursor - cur_depth) * .02 + 1, 0, 1);
+                                          : clamp((tex_depth + cursor - cur_depth) * .03 + 1, 0, 1);
 }
 
 float query_visibility_indexed(vec3 pos, int idx) {
